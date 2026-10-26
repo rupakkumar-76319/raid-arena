@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Raid Arena Overlay</title>
+  <link rel="stylesheet" href="/overlay/styles.css">
+</head>
+<body>
+  <div id="ready-badge" class="ready-badge">Raid Arena ready</div>
+  <main id="game-overlay" class="game-overlay" hidden aria-live="polite">
+    <header class="topline">
+      <div class="brand"><span class="brand-mark">RA</span><span>RAID ARENA <small>CO-OP ENCOUNTER</small></span></div>
+      <div class="timer-wrap"><span class="timer-label">TIME LEFT</span><span id="countdown" class="countdown">1:30</span></div>
+    </header>
+
+    <section id="battle-hud" class="battle-hud" hidden>
+      <div class="main-grid">
+        <section class="boss-panel panel">
+          <div class="boss-copy">
+            <div class="eyebrow">RAID FROM <span id="raider-name">Raider</span> <span class="dot">·</span> <span id="raid-viewers">0 VIEWERS</span></div>
+            <h1 id="boss-name">Void Kaiju</h1>
+            <p id="boss-intro" class="boss-intro">A creature from the void tears open the sky above the arena.</p>
+            <div class="boss-hp-label"><span>BOSS HP</span><span id="boss-hp-text">60 / 60</span></div>
+            <div class="bar boss-hp"><span id="boss-hp-bar"></span></div>
+            <div class="category"><span>RAID CATEGORY</span><strong id="raid-category">Unknown category</strong></div>
+          </div>
+          <div id="boss-art" class="boss-art" aria-hidden="true"></div>
+        </section>
+
+        <aside class="feed-panel panel">
+          <div class="panel-heading"><span>LIVE DAMAGE FEED</span><span class="feed-live"><i></i> LIVE</span></div>
+          <ol id="damage-feed" class="damage-feed"><li class="feed-empty">Waiting for chat to join…</li></ol>
+          <div class="command-hint"><span>!ATTACK</span><span>!SHIELD</span><span>!HEAL</span><span>!RALLY</span></div>
+        </aside>
+      </div>
+
+      <section class="team-panel panel">
+        <div class="team-hp-block">
+          <div class="panel-heading"><span>SHARED TEAM HP</span><strong id="team-hp-text">100 / 100</strong></div>
+          <div class="bar team-hp"><span id="team-hp-bar"></span></div>
+          <div class="team-caption"><span class="team-chip raiders">RAIDERS <b id="raiders-joined">0</b></span><span class="team-chip home">HOME <b id="home-joined">0</b></span><span id="shield-status" class="shield-status">NO SHIELD</span></div>
+        </div>
+        <div class="combo-block">
+          <div class="panel-heading"><span>TEAM COMBO</span><strong id="combo-label">0 / 6</strong></div>
+          <div class="bar combo-bar"><span id="combo-bar"></span></div>
+          <div id="combo-status" class="combo-status">Alternate team attacks to charge 2× damage</div>
+        </div>
+      </section>
+    </section>
+
+    <section id="finish-screen" class="finish-screen panel" hidden>
+      <div class="finish-spark">✦</div>
+      <div id="finish-eyebrow" class="eyebrow">BATTLE COMPLETE</div>
+      <h1 id="finish-title">RAID VICTORY</h1>
+      <p id="finish-boss" class="finish-boss">Void Kaiju was defeated.</p>
+      <div class="mvp-grid">
+        <div class="mvp-card"><span>RAIDER MVP</span><strong id="mvp-raider">—</strong></div>
+        <div class="mvp-card"><span>HOME MVP</span><strong id="mvp-home">—</strong></div>
+        <div class="mvp-card joined-card"><span>RAIDERS JOINED</span><strong id="finish-raiders">0</strong></div>
+      </div>
+    </section>
+  </main>
+  <script src="/overlay/app.js" defer></script>
+</body>
+</html>

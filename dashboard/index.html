@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Raid Arena — Streamer Dashboard</title>
+  <link rel="stylesheet" href="/dashboard/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <div class="eyebrow">CODEX × TWITCHCON HACKATHON</div>
+    <div class="hero-row"><h1>Raid <span>Arena</span></h1><span class="build-badge">STREAMER TOOLS</span></div>
+    <p class="intro">Turn incoming Twitch raids into a configurable co-op boss battle. Raiders and your home chat fight together.</p>
+
+    <section class="panel connection-panel">
+      <div>
+        <p class="label">TWITCH CONNECTION</p>
+        <p id="connection-status" class="status">Checking local session…</p>
+        <p id="account-name" class="muted"></p>
+      </div>
+      <div class="connection-actions"><span id="overlay-status" class="muted">No overlay connected</span><a id="connect-link" class="button" href="/auth/twitch">Connect Twitch</a></div>
+    </section>
+
+    <div class="two-column">
+      <section class="panel">
+        <div class="panel-head"><div><p class="label">BATTLE SETTINGS</p><h2>Make it yours</h2></div></div>
+        <form id="settings-form">
+          <label class="field">Game duration <span class="field-control"><input id="game-duration" type="number" min="30" max="180" step="5" required><small>seconds</small></span></label>
+          <label class="field">Boss difficulty <span class="field-control"><input id="boss-difficulty" type="number" min="0.5" max="3" step="0.1" required><small>× HP</small></span></label>
+          <label class="toggle"><span><strong>Auto-shoutout</strong><small>Shout out raiders when Twitch cooldown allows.</small></span><input id="auto-shoutout" type="checkbox"></label>
+          <label class="toggle"><span><strong>Bot messages</strong><small>Post battle start, full combo, and result messages.</small></span><input id="bot-messages" type="checkbox"></label>
+          <div class="form-actions"><button class="button" type="submit">Save settings</button><span id="settings-result" class="muted" aria-live="polite"></span></div>
+        </form>
+      </section>
+
+      <section class="panel test-panel">
+        <div class="panel-head"><div><p class="label">TEST THE GAME</p><h2>Bring a boss in</h2></div><span class="mini-status">CO-OP ROUND</span></div>
+        <form id="raid-form" class="raid-form">
+          <label>Raider name <input name="raiderName" value="sample_raider" maxlength="25" required></label>
+          <label>Viewer count <input name="viewerCount" type="number" value="42" min="0" max="1000000" required></label>
+          <button class="button" type="submit">Start test raid</button>
+        </form>
+        <p id="test-result" class="muted" aria-live="polite">Open the overlay preview or add it as an OBS Browser Source.</p>
+        <div class="simulate-row"><div><strong>Solo simulation</strong><small>40 random chat actions from fake raiders and home chatter over 30 seconds.</small></div><button id="simulate-button" class="button secondary" type="button">Simulate battle</button></div>
+        <p id="simulate-result" class="muted" aria-live="polite"></p>
+      </section>
+    </div>
+
+    <section class="panel retention-panel">
+      <div class="retention-highlight"><div><p class="label">RAIDER RETENTION</p><h2 id="retention-average">—</h2><p class="muted">average still chatting at 10 minutes</p></div><div class="retention-side"><strong id="sample-count">0</strong><span>completed<br>10-minute samples</span></div></div>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="panel-head"><div><p class="label">RECENT ENCOUNTERS</p><h2>Raid history</h2></div><button id="refresh-history" class="text-button" type="button">Refresh</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Raid</th><th>Viewers</th><th>Boss</th><th>Result</th><th>Raider MVP</th><th>Home MVP</th><th>Raider chatters<br>1m / 5m / 10m</th></tr></thead>
+          <tbody id="raid-history"><tr><td colspan="7" class="empty-cell">No raids recorded yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="link-row"><a href="/overlay" target="_blank" rel="noreferrer">Open transparent overlay preview ↗</a><span id="game-status" class="muted">Waiting for a raid</span></section>
+    <footer>Raid Arena · Settings and encounter history are saved locally in server/data/.</footer>
+  </main>
+  <script src="/dashboard/app.js" defer></script>
+</body>
+</html>
