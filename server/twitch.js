@@ -195,7 +195,10 @@ class TwitchClient {
     });
     const sent = result.data?.[0];
     if (!sent?.is_sent) {
-      throw new Error(sent?.drop_reason?.message || 'Twitch did not send the chat message.');
+      const error = new Error(sent?.drop_reason?.message || 'Twitch did not send the chat message.');
+      error.statusCode = 200;
+      error.responseBody = result;
+      throw error;
     }
     return sent;
   }
@@ -375,7 +378,10 @@ async function readJsonResponse(response, context) {
   }
   if (!response.ok) {
     const detail = payload.message || payload.error || response.statusText;
-    throw new Error(`${context} failed (${response.status}): ${detail}`);
+    const error = new Error(`${context} failed (${response.status}): ${detail}`);
+    error.statusCode = response.status;
+    error.responseBody = payload;
+    throw error;
   }
   return payload;
 }

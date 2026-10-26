@@ -1,10 +1,10 @@
-// Run five seeded, headless copies of the dashboard's simulation.
+// Run ten seeded, headless copies of the dashboard's simulation.
 // timeScale speeds the shared action schedule, game clock, and boss ticks 10x.
 const { GameManager } = require('../server/game');
 const { DEFAULT_SETTINGS } = require('../server/settings-store');
 const { simulateBattle } = require('../server/simulation');
 
-const RUNS = Number.parseInt(process.argv[2], 10) || 5;
+const RUNS = Number.parseInt(process.argv[2], 10) || 10;
 const TIME_SCALE = 10;
 
 async function runSimulation(runNumber) {
@@ -54,13 +54,15 @@ function delay(milliseconds) {
 }
 
 (async () => {
-  let wins = 0;
+  const totals = { kills: 0, lastStands: 0, fallen: 0 };
   for (let run = 1; run <= RUNS; run += 1) {
     const result = await runSimulation(run);
-    if (result.outcome === 'victory') wins += 1;
+    if (result.reason === 'boss-defeated') totals.kills += 1;
+    else if (result.reason === 'last-stand') totals.lastStands += 1;
+    else totals.fallen += 1;
     console.log(`Run ${run}: ${result.outcome} (${result.reason || 'no reason'}, boss ${result.bossHpRemaining ?? '?'} HP, team ${result.teamHpRemaining ?? '?'} HP)`);
   }
-  console.log(`Simulated win rate: ${wins}/${RUNS} (${Math.round(wins / RUNS * 100)}%)`);
+  console.log(`Results across ${RUNS} runs: ${totals.kills} boss kills (${Math.round(totals.kills / RUNS * 100)}%), ${totals.lastStands} last-stands, ${totals.fallen} fallen.`);
 })().catch((error) => {
   console.error(`Simulation check failed: ${error.stack || error.message}`);
   process.exitCode = 1;

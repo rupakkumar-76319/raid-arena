@@ -9,7 +9,7 @@ const CHAT_LOOKBACK_MS = 30 * 60_000;
 const SHIELD_DURATION_MS = 12_000;
 const HEAL_AMOUNT = 20;
 const COMBO_MAX = 6;
-const COMBO_DURATION_MS = 10_000;
+const COMBO_DURATION_MS = 12_000;
 
 /** Keeps the earliest message still inside the rolling 30-minute channel window. */
 class PlayerRegistry {
@@ -174,7 +174,7 @@ class GameManager {
         if (game.comboMeter >= game.comboMax) {
           game.comboMeter = 0;
           game.doubleDamageUntilMs = now + COMBO_DURATION_MS;
-          if (game.settings.botMessages) this.queueBotMessage('Combo full! Team attacks deal 2x damage for the next 10 seconds!');
+          if (game.settings.botMessages) this.queueBotMessage('Combo full! Team attacks deal 2x damage for the next 12 seconds!');
           effect = 'combo';
         }
       } else if (game.lastAttackTeam === player.team) {
@@ -183,7 +183,7 @@ class GameManager {
       }
       game.lastAttackTeam = player.team;
 
-      const rolled = randomInteger(5, 12, this.random);
+      const rolled = randomInteger(6, 14, this.random);
       const multiplier = now < game.doubleDamageUntilMs ? 2 : 1;
       const damage = Math.min(game.boss.hp, rolled * multiplier);
       game.boss.hp = Math.max(0, game.boss.hp - damage);

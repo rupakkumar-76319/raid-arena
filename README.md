@@ -62,10 +62,10 @@ The idle overlay shows a small `Raid Arena ready` badge, which fades after five 
 ## Game rules
 
 - Boss HP is `40 + 3 x raid viewers`, clamped to 60-600, then adjusted by the saved difficulty multiplier and clamped again to 60-600.
-- Bosses attack every 10 seconds. They remove 10 shared team HP while above half health and 6 HP at or below half. The team starts at 100 HP. A `!shield` blocks the next boss attack or expires after 12 seconds, whichever comes first.
+- Bosses attack every 10 seconds. They remove 12 shared team HP while above half health and 8 HP at or below half. The team starts at 100 HP. A `!shield` blocks the next boss attack or expires after 12 seconds, whichever comes first.
 - The default round lasts 90 seconds. The team loses if shared team HP reaches zero. When time expires, the team earns a last-stand victory if boss HP is below 25%; otherwise it loses.
 - Each user can use one game command every four seconds.
-- `!attack` deals 5-12 damage. Attacks alternating between RAIDERS and HOME fill the combo meter; a full meter doubles attack damage for 10 seconds. Consecutive attacks from one team break the combo.
+- `!attack` deals 6-14 damage. Attacks alternating between RAIDERS and HOME fill the combo meter; a full meter doubles attack damage for 12 seconds. Consecutive attacks from one team break the combo.
 - `!rally` charges the other team: its next alternating attack adds combo progress. `!heal` restores 20 shared team HP, up to 100.
 - The user's first chat message in the rolling 30-minute channel history determines their team. A first message after the raid makes them a RAIDER; everyone with an earlier message is HOME.
 - The finish screen shows the result, each team's MVP, and the distinct raiders who joined the battle.
@@ -81,13 +81,15 @@ Dashboard settings are saved in `server/data/settings.json` and apply to the nex
 - **Auto-shoutout:** enabled by default. The server honors Twitch cooldowns and logs failures without stopping the battle.
 - **Bot messages:** enabled by default. The broadcaster posts a command guide at raid start, a message when combo fills, and the result at the end.
 
+Successful broadcaster chat posts and shoutouts are logged with a clear success line. Failed Helix requests log their HTTP status and Twitch response body.
+
 Advanced boss attack settings are stored in the same JSON file and can be edited there while the server is stopped. Defaults are:
 
 ```json
 {
   "bossAttackIntervalSeconds": 10,
-  "bossAttackDamageAbove50Percent": 10,
-  "bossAttackDamageAtOrBelow50Percent": 6
+  "bossAttackDamageAbove50Percent": 12,
+  "bossAttackDamageAtOrBelow50Percent": 8
 }
 ```
 
@@ -99,15 +101,15 @@ Every raid is logged to `server/data/raids.json`. Raider retention samples count
 
 1. Open `/overlay` in a browser tab or add it to OBS.
 2. On the dashboard, use **Start test raid** to start one synthetic raid.
-3. Use **Simulate battle** to start a 60-second battle for a 35-viewer `ArenaSimulator` raid. It sends 70 fake actions over the round, weighted 60% `!attack`, 15% `!heal`, 15% `!shield`, and 10% `!rally`. RAIDERS and HOME alternate on every action. The real four-second per-user cooldown applies; Twitch shoutouts are skipped. The simulator uses a fixed 1.15x boss HP multiplier to keep its solo challenge near an 80% win rate; this does not change the saved live-game difficulty.
+3. Use **Simulate battle** to start a 60-second battle for a 35-viewer `ArenaSimulator` raid. It sends 70 fake actions over the round, weighted 60% `!attack`, 15% `!heal`, 15% `!shield`, and 10% `!rally`. RAIDERS and HOME alternate on every action. Actions rotate across 14 raider and 10 home identities, each with a stable user ID, so every action clears the four-second cooldown. Twitch shoutouts are skipped. The simulator uses a fixed 2.4x boss HP multiplier; this does not change the saved live-game difficulty.
 
-To run five reproducible headless simulations without waiting five real minutes:
+To run ten seeded headless simulations without waiting ten real minutes:
 
 ```powershell
 node scripts/sim-check.js
 ```
 
-The script uses the game's optional `timeScale: 10` clock and prints each outcome and the overall win rate.
+The script uses the game's optional `timeScale: 10` clock and prints each outcome plus separate totals for real boss kills, last-stands, and fallen rounds.
 
 You can inject an individual fake chat message during an active game:
 

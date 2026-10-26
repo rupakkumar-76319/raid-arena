@@ -39,7 +39,7 @@ h1 { margin: 14px 0 8px; font-size: clamp(40px, 4.2vw, 64px); font-weight: 900; 
 .boss-hp > span { background: linear-gradient(90deg, var(--boss-color, #a576ff), var(--boss-color-two, #52d7e6)); box-shadow: 0 0 16px var(--boss-color, #a576ff); }
 .category { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; color: #92899e; }
 .category strong { color: #e4d7f1; font: 600 11px "Segoe UI", sans-serif; letter-spacing: .02em; }
-.boss-art { position: relative; z-index: 1; display: grid; width: 280px; min-width: 220px; height: 235px; place-items: center; filter: drop-shadow(0 18px 24px #0008); animation: boss-hover 3s ease-in-out infinite; }
+.boss-art { position: relative; z-index: 1; display: grid; width: 280px; min-width: 220px; height: 235px; place-items: center; filter: drop-shadow(0 18px 24px #0008); animation: boss-hover 4.8s ease-in-out infinite; }
 .boss-art svg { width: 100%; height: 100%; overflow: visible; }
 .boss-art .fill-one { fill: var(--boss-color, #a576ff); }
 .boss-art .fill-two { fill: var(--boss-color-two, #52d7e6); }
@@ -73,7 +73,9 @@ h1 { margin: 14px 0 8px; font-size: clamp(40px, 4.2vw, 64px); font-weight: 900; 
 .shield-status.active { color: #83e8ff; text-shadow: 0 0 9px #45dfff; }
 .combo-bar > span { background: linear-gradient(90deg, #fd9f51, #ffdb75, #b77cff); box-shadow: 0 0 13px #edb35c77; }
 .combo-status { min-height: 14px; margin-top: 9px; color: #a89daf; font: 10px "Segoe UI", sans-serif; }
-.combo-status.active { color: #ffd995; font-weight: 800; text-shadow: 0 0 9px #ffa75366; }
+.combo-status.active { display: none; }
+.combo-heading-right { display: flex; align-items: center; gap: 8px; }
+.combo-active-badge { padding: 4px 7px; border: 1px solid #ffcf7855; border-radius: 6px; background: #e49b2820; color: #ffe08d; font: 800 8px "Segoe UI", sans-serif; letter-spacing: .08em; white-space: nowrap; }
 .finish-screen { position: relative; width: min(930px, 100%); margin: 20px auto 0; overflow: hidden; padding: 35px 42px 38px; text-align: center; animation: finish-in .5s cubic-bezier(.18,.82,.2,1) both; }
 .finish-screen::before { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, #b784ff29, transparent 62%); content: ""; pointer-events: none; }
 .finish-spark { position: absolute; top: 14px; right: 21px; color: #ffd478; font-size: 34px; animation: pulse 1s ease-in-out infinite alternate; }
@@ -87,7 +89,8 @@ h1 { margin: 14px 0 8px; font-size: clamp(40px, 4.2vw, 64px); font-weight: 900; 
 .mvp-card span { color: #a69bb2; font-size: 8px; }
 .mvp-card strong { overflow: hidden; color: #f4edff; font-size: 17px; text-overflow: ellipsis; white-space: nowrap; }
 .joined-card strong { color: #d9baff; font: 800 24px "Consolas", monospace; }
-.game-overlay.effect-hit .boss-art { animation: boss-hit .28s ease-in-out; }
+.game-overlay.effect-hit .boss-panel { animation: boss-card-flash .58s ease-out; }
+.game-overlay.effect-hit .boss-art { animation: boss-hurt-shake .42s ease-in-out; }
 .game-overlay.effect-shield .team-panel, .game-overlay.effect-shield-block .team-panel { animation: shield-flash .65s ease-out; }
 .game-overlay.effect-heal .team-hp-block { animation: heal-flash .6s ease-out; }
 .game-overlay.effect-rally .combo-block { animation: rally-flash .55s ease-out; }
@@ -95,8 +98,9 @@ h1 { margin: 14px 0 8px; font-size: clamp(40px, 4.2vw, 64px); font-weight: 900; 
 .game-overlay.effect-combo .combo-block { animation: combo-burst .8s ease-out; }
 @keyframes overlay-enter { from { opacity: 0; transform: translateY(-12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes finish-in { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes boss-hover { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
-@keyframes boss-hit { 25% { transform: translateX(-9px) rotate(-3deg); filter: brightness(1.8); } 65% { transform: translateX(8px) rotate(3deg); } }
+@keyframes boss-hover { 0%, 100% { transform: translateY(0) rotate(-.5deg); } 50% { transform: translateY(-6px) rotate(.5deg); } }
+@keyframes boss-hurt-shake { 15% { transform: translateX(-9px) rotate(-3deg); filter: brightness(1.9); } 40% { transform: translateX(8px) rotate(3deg); } 70% { transform: translateX(-4px) rotate(-1deg); } }
+@keyframes boss-card-flash { 24% { border-color: #ffd38b; box-shadow: 0 0 32px #ff9c4b88, inset 0 0 26px #ff9c4b31; } }
 @keyframes feed-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes pulse { from { opacity: .55; transform: scale(.92); } to { opacity: 1; transform: scale(1.08); } }
 @keyframes shield-flash { 35% { border-color: #75e8ff; box-shadow: 0 0 30px #27d9ff68; } }
@@ -143,7 +147,10 @@ body:not(.full-layout) .game-overlay {
 }
 body:not(.full-layout) .topline { position: fixed; inset: 0; display: block; padding: 0; pointer-events: none; }
 body:not(.full-layout) .brand { display: none; }
-body:not(.full-layout) .timer-wrap { position: fixed; z-index: 5; right: 32px; bottom: 42px; min-width: 112px; justify-content: space-between; }
+body:not(.full-layout) .timer-wrap { position: fixed; z-index: 5; right: 24px; bottom: 20px; display: grid; width: min(220px, calc(100vw - 48px)); min-width: 0; grid-template-columns: 1fr auto; grid-template-areas: "label count" "shield shield"; gap: 4px 12px; padding: 10px 13px; }
+body:not(.full-layout) .timer-label { grid-area: label; align-self: center; font-size: 10px; }
+body:not(.full-layout) .countdown { grid-area: count; min-width: 80px; font-size: 32px; }
+body:not(.full-layout) .shield-status { grid-area: shield; margin: 0; font-size: 9px; text-align: right; }
 body:not(.full-layout) .battle-hud { position: fixed; inset: 0; pointer-events: none; }
 body:not(.full-layout) .main-grid { display: contents; }
 body:not(.full-layout) .boss-panel {
@@ -187,7 +194,7 @@ body:not(.full-layout) .team-panel {
   width: auto;
   min-width: 0;
   margin: 0;
-  padding: 12px 160px 12px 16px;
+  padding: 12px 250px 12px 16px;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
@@ -212,9 +219,9 @@ body.full-layout .finish-screen.fade { animation: none; opacity: 0; transform: t
 @media (max-width: 760px) {
   body:not(.full-layout) .boss-panel { left: 14px; bottom: 146px; width: min(560px, calc(100vw - 28px)); height: 220px; }
   body:not(.full-layout) .boss-art { width: 125px; min-width: 105px; height: 125px; }
-  body:not(.full-layout) .team-panel { right: 14px; bottom: 14px; left: 14px; gap: 10px; padding-right: 125px; }
-  body:not(.full-layout) .timer-wrap { right: 21px; bottom: 37px; min-width: 98px; padding: 6px 8px; }
+  body:not(.full-layout) .team-panel { right: 14px; bottom: 14px; left: 14px; gap: 10px; padding-right: 205px; }
+  body:not(.full-layout) .timer-wrap { right: 14px; bottom: 14px; width: min(185px, calc(100vw - 28px)); padding: 8px 10px; }
   body:not(.full-layout) .timer-label { font-size: 8px; }
-  body:not(.full-layout) .countdown { min-width: 34px; font-size: 16px; }
+  body:not(.full-layout) .countdown { min-width: 64px; font-size: 26px; }
   body:not(.full-layout) .feed-panel { top: 14px; right: 14px; }
 }

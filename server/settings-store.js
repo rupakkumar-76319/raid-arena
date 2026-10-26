@@ -5,8 +5,8 @@ const DEFAULT_SETTINGS = Object.freeze({
   gameDurationSeconds: 90,
   bossDifficultyMultiplier: 1,
   bossAttackIntervalSeconds: 10,
-  bossAttackDamageAbove50Percent: 10,
-  bossAttackDamageAtOrBelow50Percent: 6,
+  bossAttackDamageAbove50Percent: 12,
+  bossAttackDamageAtOrBelow50Percent: 8,
   autoShoutout: true,
   botMessages: true,
 });
@@ -20,7 +20,15 @@ class SettingsStore {
   async load() {
     try {
       const saved = JSON.parse(await fs.readFile(this.filePath, 'utf8'));
-      this.settings = validateSettings({ ...DEFAULT_SETTINGS, ...saved });
+      const migrated = { ...DEFAULT_SETTINGS, ...saved };
+      const previousAttackDefaults = saved.bossAttackDamageAbove50Percent === 10 &&
+        saved.bossAttackDamageAtOrBelow50Percent === 6;
+      if (previousAttackDefaults) {
+        migrated.bossAttackDamageAbove50Percent = DEFAULT_SETTINGS.bossAttackDamageAbove50Percent;
+        migrated.bossAttackDamageAtOrBelow50Percent = DEFAULT_SETTINGS.bossAttackDamageAtOrBelow50Percent;
+      }
+      this.settings = validateSettings(migrated);
+      if (previousAttackDefaults) await this.save();
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
       await this.save();

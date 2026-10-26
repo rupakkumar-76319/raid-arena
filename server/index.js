@@ -38,7 +38,14 @@ const game = new GameManager({
   onGameStarted: (context) => retention.startRaid(context),
   onGameFinished: (context) => retention.recordResult(context),
   onChatObserved: (chat) => retention.recordChat(chat),
-  sendBotMessage: (message) => twitch.sendChatMessage(message),
+  sendBotMessage: async (message) => {
+    try {
+      await twitch.sendChatMessage(message);
+      console.log(`Bot message sent: ${message}`);
+    } catch (error) {
+      logTwitchFailure('Bot message', error);
+    }
+  },
 });
 
 twitch = new TwitchClient({
@@ -188,10 +195,18 @@ async function sendAutoShoutout(raiderId, raiderName) {
     await twitch.sendShoutout(raiderId);
     lastShoutoutAt = Date.now();
     shoutoutTargetTimes.set(raiderId, lastShoutoutAt);
-    console.log(`Sent automatic shoutout to ${raiderName}.`);
+    console.log(`Shoutout sent: @${raiderName} (moderator:manage:shoutouts).`);
   } catch (error) {
-    if (/429|rate limit/i.test(error.message)) lastShoutoutAt = Date.now();
-    console.error(`Automatic shoutout to ${raiderName} failed: ${error.message}`);
+    if (error.statusCode === 429 || /429|rate limit/i.test(error.message)) lastShoutoutAt = Date.now();
+    logTwitchFailure(`Shoutout to @${raiderName}`, error);
+  }
+}
+
+function logTwitchFailure(action, error) {
+  if (error.statusCode) {
+    console.error(`${action} failed (HTTP ${error.statusCode}): ${JSON.stringify(error.responseBody ?? error.message)}`);
+  } else {
+    console.error(`${action} failed (no HTTP response): ${error.message}`);
   }
 }
 
