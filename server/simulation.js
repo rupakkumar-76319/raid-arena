@@ -24,10 +24,11 @@ const COMMANDS = [
 ];
 
 /** Runs the same weighted, alternating chat sequence for the dashboard and headless checker. */
-async function simulateBattle({ startRaid, handleChat, delay = wait, timeScale = 1, random = Math.random }) {
-  await startRaid('ArenaSimulator', 35, {
+async function simulateBattle({ startRaid, handleChat, delay = wait, timeScale = 1, random = Math.random, category, raiderName = 'ArenaSimulator' }) {
+  await startRaid(raiderName, 35, {
     durationSeconds: 60,
     bossDifficultyMultiplier: BOSS_DIFFICULTY_MULTIPLIER,
+    category,
   });
 
   const actionsByTeam = { RAIDERS: 0, HOME: 0 };

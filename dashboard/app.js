@@ -6,7 +6,9 @@ const gameStatus = document.querySelector('#game-status');
 const testResult = document.querySelector('#test-result');
 const simulationResult = document.querySelector('#simulate-result');
 const simulateButton = document.querySelector('#simulate-button');
+const demoButton = document.querySelector('#demo-button');
 const settingsResult = document.querySelector('#settings-result');
+let isDemoSimulation = false;
 
 async function refreshStatus() {
   try {
@@ -19,6 +21,7 @@ async function refreshStatus() {
       ? '1 overlay connected'
       : `${status.overlayClients} overlays connected`;
     simulateButton.disabled = status.simulationRunning || status.game?.status === 'active';
+    demoButton.disabled = status.simulationRunning || status.game?.status === 'active';
     if (status.simulationRunning) simulationResult.textContent = 'Simulation running: 70 fake chat actions are arriving for 60 seconds.';
     else if (status.game?.status === 'active') gameStatus.textContent = `Battle live · ${status.game.secondsRemaining}s remaining`;
     else if (status.game?.status === 'finished') gameStatus.textContent = `Last battle: ${status.game.outcome === 'victory' ? 'victory' : 'fallen'}`;
@@ -133,7 +136,11 @@ document.querySelector('#raid-form').addEventListener('submit', async (event) =>
     const response = await fetch('/test/raid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ raiderName: form.get('raiderName'), viewerCount: Number(form.get('viewerCount')) }),
+      body: JSON.stringify({
+        raiderName: form.get('raiderName'),
+        viewerCount: Number(form.get('viewerCount')),
+        category: form.get('category'),
+      }),
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Could not start the test raid.');
@@ -146,9 +153,14 @@ document.querySelector('#raid-form').addEventListener('submit', async (event) =>
 
 simulateButton.addEventListener('click', async () => {
   simulateButton.disabled = true;
+  demoButton.disabled = true;
   simulationResult.textContent = 'Starting simulation…';
   try {
-    const response = await fetch('/test/simulate', { method: 'POST' });
+    const response = await fetch('/test/simulate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: document.querySelector('#raid-category').value, demo: isDemoSimulation }),
+    });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Could not start the simulation.');
     simulationResult.textContent = result.message;
@@ -156,8 +168,14 @@ simulateButton.addEventListener('click', async () => {
   } catch (error) {
     simulationResult.textContent = error.message;
   } finally {
+    isDemoSimulation = false;
     refreshStatus();
   }
+});
+
+demoButton.addEventListener('click', () => {
+  isDemoSimulation = true;
+  simulateButton.click();
 });
 
 document.querySelector('#refresh-history').addEventListener('click', refreshHistory);

@@ -25,13 +25,14 @@ async function runSimulation(runNumber) {
         raiderId: null,
         raiderName,
         viewers,
-        category: 'Minecraft',
+        category: options.category || 'Minecraft',
         startedAt: new Date().toISOString(),
         isTest: true,
       }, options),
       handleChat: (chat) => manager.handleChat(chat),
       timeScale: TIME_SCALE,
       random,
+      category: 'Minecraft',
     });
 
     while (!result && manager.currentGame?.status === 'active') await delay(100);

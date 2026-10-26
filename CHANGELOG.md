@@ -14,3 +14,5 @@
 - Moved the large countdown and shield status into the compact bottom strip, added an active x2 badge and boss-card hit flash, and refined the theme SVG silhouettes.
 - Added explicit success and HTTP status/body failure logs for broadcaster chat messages and automatic shoutouts.
 - The ten-run headless simulation check completed with 9 boss kills, 1 last-stand, and 0 fallen rounds.
+- Hid the complete battle HUD when the finish overlay returns to idle, and added category overrides plus Simulate/Demo battle controls for theme previews.
+- Added the 60-second demo quick start and text architecture diagram to the README.

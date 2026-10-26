@@ -37,11 +37,26 @@
         <div class="panel-head"><div><p class="label">TEST THE GAME</p><h2>Bring a boss in</h2></div><span class="mini-status">CO-OP ROUND</span></div>
         <form id="raid-form" class="raid-form">
           <label>Raider name <input name="raiderName" value="sample_raider" maxlength="25" required></label>
+          <label>Boss category <select name="category" id="raid-category">
+            <option value="">Auto (look up on Twitch)</option>
+            <option>Minecraft</option>
+            <option>Just Chatting</option>
+            <option>VALORANT</option>
+            <option>Counter-Strike</option>
+            <option>Apex Legends</option>
+            <option>Fortnite</option>
+            <option>Pokémon</option>
+            <option>Music</option>
+            <option>IRL</option>
+            <option>Travel</option>
+            <option>Science &amp; Technology</option>
+            <option>Other (Void Kaiju)</option>
+          </select></label>
           <label>Viewer count <input name="viewerCount" type="number" value="42" min="0" max="1000000" required></label>
           <button class="button" type="submit">Start test raid</button>
         </form>
         <p id="test-result" class="muted" aria-live="polite">Open the overlay preview or add it as an OBS Browser Source.</p>
-        <div class="simulate-row"><div><strong>Solo simulation</strong><small>70 weighted chat actions across 60 seconds with a full cast of raiders and home chatters.</small></div><button id="simulate-button" class="button secondary" type="button">Simulate battle</button></div>
+        <div class="simulate-row"><div><strong>Solo simulation</strong><small>70 weighted chat actions across 60 seconds with a full cast of raiders and home chatters. Both buttons use the selected category.</small></div><div class="simulate-buttons"><button id="simulate-button" class="button secondary" type="button">Simulate battle</button><button id="demo-button" class="button secondary" type="button">Demo battle</button></div></div>
         <p id="simulate-result" class="muted" aria-live="polite"></p>
       </section>
     </div>

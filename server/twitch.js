@@ -314,9 +314,10 @@ class TwitchClient {
     });
   }
 
-  async handleRaid({ raiderId, raiderName, viewers, isTest = false, durationSeconds, bossDifficultyMultiplier }) {
-    let category = 'Unknown category';
-    if (raiderId) {
+  async handleRaid({ raiderId, raiderName, viewers, isTest = false, durationSeconds, bossDifficultyMultiplier, category: requestedCategory }) {
+    const explicitCategory = typeof requestedCategory === 'string' ? requestedCategory.trim() : '';
+    let category = explicitCategory || 'Unknown category';
+    if (!explicitCategory && raiderId) {
       try {
         category = await this.getChannelCategory(raiderId);
       } catch (error) {
@@ -339,7 +340,7 @@ class TwitchClient {
 
   async handleTestRaid(raiderName, viewers, options = {}) {
     let raiderId;
-    if (this.tokens) {
+    if (this.tokens && !options.category) {
       const login = raiderName.replace(/^@/, '').trim();
       try {
         const user = await this.findUserByLogin(login);
@@ -356,6 +357,7 @@ class TwitchClient {
       isTest: true,
       durationSeconds: options.durationSeconds,
       bossDifficultyMultiplier: options.bossDifficultyMultiplier,
+      category: options.category,
     });
   }
 

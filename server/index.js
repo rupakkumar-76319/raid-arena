@@ -114,8 +114,11 @@ app.get('/api/raids', (req, res) => {
 });
 
 app.post('/test/raid', async (req, res) => {
-  const raiderName = typeof req.body.raiderName === 'string' ? req.body.raiderName.trim() : '';
-  const viewers = Number(req.body.viewerCount);
+  const input = req.body || {};
+  const raiderName = typeof input.raiderName === 'string' ? input.raiderName.trim() : '';
+  const viewers = Number(input.viewerCount);
+  const category = optionalCategory(input.category);
+  if (category === null) return res.status(400).json({ error: 'category must be a safe string of 1-60 characters.' });
   if (!raiderName || raiderName.length > 25 || /[\r\n<>]/.test(raiderName)) {
     return res.status(400).json({ error: 'raiderName is required and must be 1–25 characters.' });
   }
@@ -124,7 +127,7 @@ app.post('/test/raid', async (req, res) => {
   }
 
   try {
-    await twitch.handleTestRaid(raiderName, viewers);
+    await twitch.handleTestRaid(raiderName, viewers, { category });
     return res.json({ ok: true, message: 'Test raid started and sent to connected overlay clients.' });
   } catch (error) {
     console.error(`Test raid failed: ${error.message}`);
@@ -156,12 +159,16 @@ app.post('/test/chat', async (req, res) => {
 });
 
 app.post('/test/simulate', (req, res) => {
+  const input = req.body || {};
+  const category = optionalCategory(input.category);
+  const demo = input.demo === true;
+  if (category === null) return res.status(400).json({ error: 'category must be a safe string of 1-60 characters.' });
   if (simulationRunning) return res.status(409).json({ error: 'A simulated battle is already running.' });
   if (game.isActive) return res.status(409).json({ error: 'A battle is already in progress.' });
   simulationRunning = true;
-  simulateBattle().catch((error) => console.error(`Battle simulation failed: ${error.message}`))
+  simulateBattle(category, demo).catch((error) => console.error(`Battle simulation failed: ${error.message}`))
     .finally(() => { simulationRunning = false; });
-  res.status(202).json({ ok: true, message: 'Simulation started: 70 fake chat actions over 60 seconds.' });
+  res.status(202).json({ ok: true, message: `${demo ? 'Demo battle' : 'Simulation'} started: 70 fake chat actions over 60 seconds.` });
 });
 
 overlaySockets.on('connection', (socket) => {
@@ -210,12 +217,22 @@ function logTwitchFailure(action, error) {
   }
 }
 
-async function simulateBattle() {
+async function simulateBattle(category, demo = false) {
   await runSimulatedBattle({
     startRaid: (raiderName, viewers, options) => twitch.handleTestRaid(raiderName, viewers, options),
     handleChat: (chat) => game.handleChat(chat),
+    category,
+    raiderName: demo ? 'ArenaDemo' : 'ArenaSimulator',
   });
   console.log('Battle simulation injected 70 alternating fake chat actions.');
+}
+
+function optionalCategory(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value !== 'string') return null;
+  const category = value.trim();
+  if (!category) return undefined;
+  return category.length <= 60 && !/[\r\n<>]/.test(category) ? category : null;
 }
 
 function broadcastToOverlays(message) {

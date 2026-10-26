@@ -59,6 +59,15 @@ In OBS, add a **Browser Source** with URL `http://localhost:3000/overlay` and se
 
 The idle overlay shows a small `Raid Arena ready` badge, which fades after five seconds. A raid brings in the boss HUD and game effects. The finish screen can use the centre for eight seconds, then fades away.
 
+## Demo in 60 seconds
+
+1. Start the server with `npm.cmd start` and open [http://localhost:3000](http://localhost:3000).
+2. Connect the broadcaster account if it is not connected already.
+3. In **Test the Game**, choose a boss category from the dropdown (or leave **Auto** to look up the test raider on Twitch).
+4. Click **Simulate battle** to run the 60-second, 70-action round with that category, or click **Demo battle** for the same battle labeled `ArenaDemo`.
+
+Use **Start test raid** to preview just the selected boss without starting the simulated chat round.
+
 ## Game rules
 
 - Boss HP is `40 + 3 x raid viewers`, clamped to 60-600, then adjusted by the saved difficulty multiplier and clamped again to 60-600.
@@ -126,10 +135,14 @@ Start a test raid directly if needed:
 ```powershell
 Invoke-RestMethod -Method Post -Uri http://localhost:3000/test/raid `
   -ContentType 'application/json' `
-  -Body '{"raiderName":"sample_raider","viewerCount":42}'
+  -Body '{"raiderName":"sample_raider","viewerCount":42,"category":"Minecraft"}'
 ```
 
+Leave out `category` (or send `"category":""`) to use automatic Twitch category lookup instead.
+
 The dashboard updates raid history and retention samples as they are recorded. A not-yet-due retention sample shows as pending with the time remaining.
+
+For a test raid API call, `category` is optional. Omit it or send an empty string for automatic Twitch lookup; set it to a category such as `Minecraft` or `Science & Technology` to select a theme directly.
 
 ## Project layout
 
@@ -138,4 +151,17 @@ server/       Express routes, Twitch OAuth/Helix, game state, themes, retention,
 overlay/      Transparent OBS HUD and CSS/SVG boss art
 dashboard/    Streamer settings, test tools, raid history, retention summary
 scripts/      Headless game simulation checks
+```
+
+## How it works
+
+```text
+Twitch EventSub (raid + chat)
+        -> server/game.js
+        -> WebSocket (/ws/overlay)
+        -> overlay/ (OBS Browser Source)
+
+server/retention.js
+        -> server/data/raids.json
+        -> dashboard/ (history + retention summary)
 ```

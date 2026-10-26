@@ -29,7 +29,7 @@ h1 span { color: #b797ff; }
 #settings-form { display: flex; flex-direction: column; gap: 11px; }
 .field { display: flex; align-items: center; justify-content: space-between; color: #d0cbd8; font-size: 12px; }
 .field-control { display: flex; align-items: center; gap: 8px; color: #858090; font: 10px 'DM Mono', monospace; }
-input[type='number'], .raid-form input { width: 95px; padding: 9px; border: 1px solid #383342; border-radius: 8px; outline: 0; background: #0d0c12; color: #fff; font: 13px 'DM Mono', monospace; }
+input[type='number'], .raid-form input, .raid-form select { width: 95px; padding: 9px; border: 1px solid #383342; border-radius: 8px; outline: 0; background: #0d0c12; color: #fff; font: 13px 'DM Mono', monospace; }
 input:focus { border-color: #9b6cff; }
 .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0 4px; border-top: 1px solid #ffffff0c; cursor: pointer; }
 .toggle strong, .simulate-row strong { display: block; color: #dcd6e5; font-size: 12px; }
@@ -37,12 +37,13 @@ input:focus { border-color: #9b6cff; }
 .toggle input { width: 35px; height: 19px; accent-color: #9b6cff; cursor: pointer; }
 .form-actions { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
 .form-actions .muted { margin: 0; }
-.raid-form { display: grid; grid-template-columns: 1fr .7fr auto; align-items: end; gap: 9px; }
-.raid-form label { color: #c5c0cf; font-size: 10px; }
-.raid-form input { display: block; width: 100%; margin-top: 7px; }
+.raid-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(72px, .55fr) auto; align-items: end; gap: 9px; }
+.raid-form label { min-width: 0; color: #c5c0cf; font-size: 10px; }
+.raid-form input, .raid-form select { display: block; width: 100%; margin-top: 7px; }
 #test-result { min-height: 16px; margin: 9px 0 12px; }
 .simulate-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid #34303d; border-radius: 10px; background: #0e0d13; }
 .simulate-row div { max-width: 315px; }
+.simulate-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 #simulate-result { min-height: 14px; margin-bottom: 0; }
 .retention-panel { padding: 18px 21px; }
 .retention-highlight { display: flex; align-items: center; justify-content: space-between; gap: 18px; }

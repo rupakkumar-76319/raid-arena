@@ -89,7 +89,12 @@ function renderGame(game, effect) {
       finishScreen.classList.add('fade');
       finishTimer = setTimeout(() => {
         finishScreen.hidden = true;
+        battleHud.hidden = true;
         gameOverlay.hidden = true;
+        gameOverlay.classList.remove(...effectClasses);
+        readyBadge.classList.remove('fade');
+        clearTimeout(readyFadeTimer);
+        readyFadeTimer = setTimeout(() => readyBadge.classList.add('fade'), 5000);
       }, 850);
     }, 7150);
   }
