@@ -1,6 +1,6 @@
-# Raid Arena
+﻿# Raid Arena
 
-Raid Arena turns incoming Twitch raids into a cooperative boss battle for an OBS browser-source overlay. Raiders and the channel's existing chat work together for a configurable game round. The boss art uses inline SVG and CSS; no image assets are fetched.
+Raid Arena turns incoming Twitch raids into a cooperative boss battle for an OBS browser-source overlay. Raiders and the channel's existing chat work together for a configurable game round. Boss art uses inline SVG and CSS; it loads no external image assets.
 
 ## Requirements
 
@@ -23,11 +23,11 @@ Raid Arena requests these broadcaster scopes:
 - `user:write:chat`
 - `moderator:manage:shoutouts`
 
-The chat scopes support reading EventSub chat messages and sending the game's short chat updates. The shoutout scope is used by auto-shoutout. Twitch requires a user access token with `moderator:manage:shoutouts` for its Send a Shoutout endpoint and enforces a two-minute broadcaster cooldown plus a one-hour same-target cooldown. ([Twitch API reference](https://dev.twitch.tv/docs/api/reference))
+Chat scopes support EventSub chat and the game's short bot updates. The shoutout scope is used by auto-shoutout. Twitch's Send a Shoutout endpoint has a two-minute broadcaster cooldown and a one-hour same-target cooldown. See the [Twitch API reference](https://dev.twitch.tv/docs/api/reference).
 
 ## 2. Configure and start
 
-Open PowerShell in `M:\raid-arena`:
+Open PowerShell in the project folder:
 
 ```powershell
 Copy-Item .env.example .env
@@ -44,52 +44,72 @@ PORT=3000
 TOKEN_FILE=server/data/tokens.json
 ```
 
-Then install and start:
+Install and start the server:
 
 ```powershell
 npm.cmd install
 npm.cmd start
 ```
 
-Open [http://localhost:3000](http://localhost:3000), click **Connect Twitch**, and authorize the broadcaster account. OAuth tokens, streamer settings, and raid records are stored under `server/data/`. Those files and `.env` are ignored by Git.
+Open [http://localhost:3000](http://localhost:3000), click **Connect Twitch**, and authorize the broadcaster account. OAuth tokens, settings, and raid records are stored under `server/data/`. Those files and `.env` are ignored by Git.
 
 ## 3. Overlay
 
-In OBS, add a **Browser Source** and set its URL to `http://localhost:3000/overlay`. Set its size to your canvas (1920 × 1080 is a good fit). Keep the server running while the source is in use. You can preview the transparent overlay in a regular browser at the same URL.
+In OBS, add a **Browser Source** with URL `http://localhost:3000/overlay` and set its size to your canvas (1920 x 1080 is a good fit). The default stream-safe layout puts the boss card bottom-left, the team bars and countdown in a bottom strip, and the damage feed top-right, leaving the centre open. The dashboard preview uses the original large layout. To open it directly, use `http://localhost:3000/overlay?layout=full`.
 
-The idle overlay shows only a small `Raid Arena ready` badge, which fades away after five seconds. A raid brings in the boss HUD and game effects.
+The idle overlay shows a small `Raid Arena ready` badge, which fades after five seconds. A raid brings in the boss HUD and game effects. The finish screen can use the centre for eight seconds, then fades away.
 
 ## Game rules
 
-- Boss HP is `40 + 3 × raid viewers`, clamped to 60–600, then adjusted by the saved difficulty multiplier and clamped again to 60–600.
-- Bosses attack every 8 seconds for 10 shared team HP. The team starts at 100 HP. One `!shield` blocks the next boss attack.
-- The default round lasts 90 seconds. If the boss is alive when time expires or team HP reaches zero, the team loses.
-- Each user can use one game command every 4 seconds.
-- `!attack` deals a random 5–12 damage. Attacks by alternating teams fill the combo meter; a full meter doubles attack damage for 10 seconds. Consecutive attacks from the same team break the current combo.
-- `!rally` charges the other team: its next alternating attack adds extra combo progress. `!heal` restores 15 shared team HP, up to 100.
-- A user's first chat message in the rolling 30-minute channel history determines their team for a raid. A first message after the raid makes them a **RAIDER**; everyone with an earlier message is **HOME**.
-- The finish screen shows the result, each team's MVP, and distinct raiders who joined the battle.
+- Boss HP is `40 + 3 x raid viewers`, clamped to 60-600, then adjusted by the saved difficulty multiplier and clamped again to 60-600.
+- Bosses attack every 10 seconds. They remove 10 shared team HP while above half health and 6 HP at or below half. The team starts at 100 HP. A `!shield` blocks the next boss attack or expires after 12 seconds, whichever comes first.
+- The default round lasts 90 seconds. The team loses if shared team HP reaches zero. When time expires, the team earns a last-stand victory if boss HP is below 25%; otherwise it loses.
+- Each user can use one game command every four seconds.
+- `!attack` deals 5-12 damage. Attacks alternating between RAIDERS and HOME fill the combo meter; a full meter doubles attack damage for 10 seconds. Consecutive attacks from one team break the combo.
+- `!rally` charges the other team: its next alternating attack adds combo progress. `!heal` restores 20 shared team HP, up to 100.
+- The user's first chat message in the rolling 30-minute channel history determines their team. A first message after the raid makes them a RAIDER; everyone with an earlier message is HOME.
+- The finish screen shows the result, each team's MVP, and the distinct raiders who joined the battle.
 
-Boss themes are selected by category substring (Minecraft, Just Chatting, tactical shooters, Fortnite, Pokemon, Music, IRL/Travel, Science, or a Void Kaiju fallback). The server sends the selected theme and the overlay draws it with inline SVG.
+Boss themes are selected by category substring (Minecraft, Just Chatting, tactical shooters, Fortnite, Pokemon, Music, IRL/Travel, Science, or a Void Kaiju fallback). The server sends the theme and the overlay draws it with inline SVG.
 
-## Streamer tools
+## Streamer tools and settings
 
-The dashboard settings are saved to `server/data/settings.json` and apply to the next raid:
+Dashboard settings are saved in `server/data/settings.json` and apply to the next raid:
 
-- **Game duration:** 30–180 seconds; default 90.
-- **Boss difficulty:** 0.5×–3.0× HP; default 1.0×.
-- **Auto-shoutout:** enabled by default. The server honors Twitch's cooldowns and logs failures without stopping the battle.
-- **Bot messages:** enabled by default. The broadcaster posts a short command guide at raid start, a message when combo fills, and the result at the end.
+- **Game duration:** 30-180 seconds; default 90.
+- **Boss difficulty:** 0.5x-3.0x HP; default 1.0x.
+- **Auto-shoutout:** enabled by default. The server honors Twitch cooldowns and logs failures without stopping the battle.
+- **Bot messages:** enabled by default. The broadcaster posts a command guide at raid start, a message when combo fills, and the result at the end.
 
-Each raid is recorded in `server/data/raids.json`. Raider retention samples count distinct raider users who chatted in the 60-second window at 1, 5, and 10 minutes after the raid. The summary compares the 10-minute active users from the first-minute cohort against that first-minute count, averaged across raids with completed samples.
+Advanced boss attack settings are stored in the same JSON file and can be edited there while the server is stopped. Defaults are:
+
+```json
+{
+  "bossAttackIntervalSeconds": 10,
+  "bossAttackDamageAbove50Percent": 10,
+  "bossAttackDamageAtOrBelow50Percent": 6
+}
+```
+
+The interval accepts 1-120 seconds; each damage value accepts 1-100. Settings are validated at startup.
+
+Every raid is logged to `server/data/raids.json`. Raider retention samples count distinct raiders active in the 60-second window at 1, 5, and 10 minutes. The summary compares the 10-minute active users from the first-minute cohort against that cohort's first-minute count, averaged across completed samples. Unfinished encounters are marked `interrupted` at startup.
 
 ## Test without a real raid
 
 1. Open `/overlay` in a browser tab or add it to OBS.
 2. On the dashboard, use **Start test raid** to start one synthetic raid.
-3. Use **Simulate battle** to start a 32-second test round. It injects 40 randomized `!attack`, `!shield`, `!heal`, and `!rally` messages from fake Raider and Home users over 30 seconds. The first seven attacks alternate teams to demonstrate a full combo. The simulation uses a synthetic 250-viewer raid to leave time to see the full chat feed and skips shoutouts.
+3. Use **Simulate battle** to start a 60-second battle for a 35-viewer `ArenaSimulator` raid. It sends 70 fake actions over the round, weighted 60% `!attack`, 15% `!heal`, 15% `!shield`, and 10% `!rally`. RAIDERS and HOME alternate on every action. The real four-second per-user cooldown applies; Twitch shoutouts are skipped. The simulator uses a fixed 1.15x boss HP multiplier to keep its solo challenge near an 80% win rate; this does not change the saved live-game difficulty.
 
-You can inject an individual fake chat message while a game is running:
+To run five reproducible headless simulations without waiting five real minutes:
+
+```powershell
+node scripts/sim-check.js
+```
+
+The script uses the game's optional `timeScale: 10` clock and prints each outcome and the overall win rate.
+
+You can inject an individual fake chat message during an active game:
 
 ```powershell
 Invoke-RestMethod -Method Post -Uri http://localhost:3000/test/chat `
@@ -97,9 +117,9 @@ Invoke-RestMethod -Method Post -Uri http://localhost:3000/test/chat `
   -Body '{"user":"NewRaider","message":"!attack","team":"RAIDERS"}'
 ```
 
-The `team` field is optional; for test messages it can be `RAIDERS` or `HOME`. Without it, the normal 30-minute chat-history classification is used. A non-command message is still useful for adding a participant and retention activity.
+The `team` field is optional; it can be `RAIDERS` or `HOME`. Without it, normal 30-minute chat-history classification is used. Non-command messages also add a participant and retention activity.
 
-The original test-raid endpoint is also available directly:
+Start a test raid directly if needed:
 
 ```powershell
 Invoke-RestMethod -Method Post -Uri http://localhost:3000/test/raid `
@@ -107,7 +127,7 @@ Invoke-RestMethod -Method Post -Uri http://localhost:3000/test/raid `
   -Body '{"raiderName":"sample_raider","viewerCount":42}'
 ```
 
-The dashboard updates raid history and retention samples as they are recorded. Retention values appear after their 1-, 5-, and 10-minute sample times.
+The dashboard updates raid history and retention samples as they are recorded. A not-yet-due retention sample shows as pending with the time remaining.
 
 ## Project layout
 
@@ -115,4 +135,5 @@ The dashboard updates raid history and retention samples as they are recorded. R
 server/       Express routes, Twitch OAuth/Helix, game state, themes, retention, settings
 overlay/      Transparent OBS HUD and CSS/SVG boss art
 dashboard/    Streamer settings, test tools, raid history, retention summary
+scripts/      Headless game simulation checks
 ```

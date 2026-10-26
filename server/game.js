@@ -6,9 +6,8 @@ const TEAM_HOME = 'HOME';
 const COMMANDS = new Set(['!attack', '!shield', '!heal', '!rally']);
 const ACTION_COOLDOWN_MS = 4_000;
 const CHAT_LOOKBACK_MS = 30 * 60_000;
-const BOSS_ATTACK_INTERVAL_MS = 8_000;
-const BOSS_ATTACK_DAMAGE = 10;
-const HEAL_AMOUNT = 15;
+const SHIELD_DURATION_MS = 12_000;
+const HEAL_AMOUNT = 20;
 const COMBO_MAX = 6;
 const COMBO_DURATION_MS = 10_000;
 
@@ -36,13 +35,17 @@ class PlayerRegistry {
 }
 
 class GameManager {
-  constructor({ broadcast, getSettings, onGameStarted, onGameFinished, onChatObserved, sendBotMessage }) {
+  constructor({ broadcast, getSettings, onGameStarted, onGameFinished, onChatObserved, sendBotMessage, timeScale = 1, random = Math.random }) {
     this.broadcast = broadcast;
     this.getSettings = getSettings;
     this.onGameStarted = onGameStarted;
     this.onGameFinished = onGameFinished;
     this.onChatObserved = onChatObserved;
     this.sendBotMessage = sendBotMessage;
+    this.timeScale = clamp(Number(timeScale) || 1, 1, 100);
+    this.random = typeof random === 'function' ? random : Math.random;
+    this.clockWallOriginMs = Date.now();
+    this.clockGameOriginMs = this.clockWallOriginMs;
     this.playerRegistry = new PlayerRegistry();
     this.currentGame = null;
     this.tickTimer = null;
@@ -57,11 +60,13 @@ class GameManager {
     if (this.isActive) this.finish('interrupted-by-new-raid');
 
     const settings = { ...this.getSettings() };
-    const startedAtMs = Date.parse(raid.startedAt) || Date.now();
+    const startedAtWallMs = Date.parse(raid.startedAt) || Date.now();
+    const startedAtMs = this.gameNow();
     const durationSeconds = clampInteger(overrides.durationSeconds ?? settings.gameDurationSeconds, 30, 180);
     const viewers = Math.max(0, Number(raid.viewers) || 0);
     const baseHp = clamp(40 + 3 * viewers, 60, 600);
-    const bossMaxHp = clamp(Math.round(baseHp * settings.bossDifficultyMultiplier), 60, 600);
+    const difficultyMultiplier = clamp(Number(overrides.bossDifficultyMultiplier ?? settings.bossDifficultyMultiplier), 0.5, 3);
+    const bossMaxHp = clamp(Math.round(baseHp * difficultyMultiplier), 60, 600);
     const theme = themeForCategory(raid.category);
 
     this.currentGame = {
@@ -69,10 +74,11 @@ class GameManager {
       status: 'active',
       outcome: null,
       reason: null,
-      startedAt: new Date(startedAtMs).toISOString(),
+      startedAt: new Date(startedAtWallMs).toISOString(),
       startedAtMs,
+      raidStartedAtWallMs: startedAtWallMs,
       endsAtMs: startedAtMs + durationSeconds * 1000,
-      nextBossAttackAtMs: startedAtMs + BOSS_ATTACK_INTERVAL_MS,
+      nextBossAttackAtMs: startedAtMs + settings.bossAttackIntervalSeconds * 1000,
       durationSeconds,
       sourceRaid: { ...raid },
       settings,
@@ -84,6 +90,7 @@ class GameManager {
       comboMax: COMBO_MAX,
       doubleDamageUntilMs: 0,
       shieldActive: false,
+      shieldExpiresAtMs: 0,
       rallyCharges: { [TEAM_RAIDERS]: 0, [TEAM_HOME]: 0 },
       lastAttackTeam: null,
       lastActionAtByUser: new Map(),
@@ -93,7 +100,7 @@ class GameManager {
     };
 
     clearInterval(this.tickTimer);
-    this.tickTimer = setInterval(() => this.tick(), 1000);
+    this.tickTimer = setInterval(() => this.tick(), Math.max(20, Math.round(1000 / this.timeScale)));
     this.broadcast({ type: 'game-start', game: this.snapshot() });
     await this.runCallback(this.onGameStarted, { game: this.snapshot(), raid });
     if (settings.botMessages) this.queueBotMessage('Raid Arena! Type !attack, !shield, !heal, or !rally. Raiders and home chat, work together!');
@@ -104,18 +111,19 @@ class GameManager {
     const game = this.currentGame;
     const username = String(chat.username || chat.chatter_user_name || chat.user || 'Chatter').trim().slice(0, 50);
     const userId = String(chat.userId || chat.chatter_user_id || chat.user || username).trim().toLowerCase();
-    const now = Number(chat.timestamp) || Date.now();
-    const { firstChatAt } = this.playerRegistry.recordChat(userId, now);
-    if (now - this.lastRegistryPruneAt > 60_000) {
-      this.playerRegistry.prune(now);
-      this.lastRegistryPruneAt = now;
+    const wallNow = Number(chat.timestamp) || Date.now();
+    const gameNow = this.gameNow();
+    const { firstChatAt } = this.playerRegistry.recordChat(userId, wallNow);
+    if (wallNow - this.lastRegistryPruneAt > 60_000) {
+      this.playerRegistry.prune(wallNow);
+      this.lastRegistryPruneAt = wallNow;
     }
 
     const forcedTeam = normalizeTeam(chat.teamOverride || chat.team);
-    const inferredTeam = game && firstChatAt >= game.startedAtMs ? TEAM_RAIDERS : TEAM_HOME;
+    const inferredTeam = game && firstChatAt >= game.raidStartedAtWallMs ? TEAM_RAIDERS : TEAM_HOME;
     const team = forcedTeam || inferredTeam;
     await this.runCallback(this.onChatObserved, {
-      userId, username, timestamp: now, firstChatAt, teamOverride: forcedTeam,
+      userId, username, timestamp: wallNow, firstChatAt, teamOverride: forcedTeam,
     });
 
     if (game && game.status === 'active') this.getPlayer(game, userId, username, team);
@@ -124,19 +132,19 @@ class GameManager {
     if (!game || game.status !== 'active' || !COMMANDS.has(command)) {
       return { accepted: false, reason: !game || game.status !== 'active' ? 'no-active-game' : 'not-a-command', team };
     }
-    if (now >= game.endsAtMs) {
-      this.finish('timer-expired');
+    if (gameNow >= game.endsAtMs) {
+      this.finishAtTimer();
       return { accepted: false, reason: 'game-ended', team };
     }
 
     const lastAction = game.lastActionAtByUser.get(userId);
-    if (lastAction && now - lastAction < ACTION_COOLDOWN_MS) {
-      return { accepted: false, reason: 'cooldown', retryAfterMs: ACTION_COOLDOWN_MS - (now - lastAction), team };
+    if (lastAction !== undefined && gameNow - lastAction < ACTION_COOLDOWN_MS) {
+      return { accepted: false, reason: 'cooldown', retryAfterMs: ACTION_COOLDOWN_MS - (gameNow - lastAction), team };
     }
-    game.lastActionAtByUser.set(userId, now);
+    game.lastActionAtByUser.set(userId, gameNow);
     const player = this.getPlayer(game, userId, username, team);
-    const effect = this.performAction(game, player, command, now);
-    game.secondsRemaining = Math.max(0, Math.ceil((game.endsAtMs - now) / 1000));
+    const effect = this.performAction(game, player, command, gameNow, wallNow);
+    game.secondsRemaining = Math.max(0, Math.ceil((game.endsAtMs - gameNow) / 1000));
     this.broadcast({ type: 'game-state', game: this.snapshot(), effect });
     if (game.boss.hp <= 0) this.finish('boss-defeated');
     return { accepted: true, command, team, effect };
@@ -153,7 +161,7 @@ class GameManager {
     return player;
   }
 
-  performAction(game, player, command, now) {
+  performAction(game, player, command, now, wallNow = Date.now()) {
     player.actions += 1;
     let effect;
     let detail;
@@ -175,7 +183,7 @@ class GameManager {
       }
       game.lastAttackTeam = player.team;
 
-      const rolled = randomInteger(5, 12);
+      const rolled = randomInteger(5, 12, this.random);
       const multiplier = now < game.doubleDamageUntilMs ? 2 : 1;
       const damage = Math.min(game.boss.hp, rolled * multiplier);
       game.boss.hp = Math.max(0, game.boss.hp - damage);
@@ -184,7 +192,9 @@ class GameManager {
       detail = `hit for ${damage} damage${multiplier === 2 ? ' (2×)' : ''}`;
       effect = effect || 'hit';
     } else if (command === '!shield') {
+      if (game.shieldActive && now >= game.shieldExpiresAtMs) game.shieldActive = false;
       game.shieldActive = true;
+      game.shieldExpiresAtMs = now + SHIELD_DURATION_MS;
       player.shields += 1;
       player.score += 10;
       detail = 'raised a team shield';
@@ -211,7 +221,7 @@ class GameManager {
       command: command.slice(1),
       detail,
       effect,
-      at: new Date(now).toISOString(),
+      at: new Date(wallNow).toISOString(),
     });
     return effect;
   }
@@ -224,15 +234,22 @@ class GameManager {
   tick() {
     const game = this.currentGame;
     if (!game || game.status !== 'active') return;
-    const now = Date.now();
+    const now = this.gameNow();
+    if (game.shieldActive && now >= game.shieldExpiresAtMs) game.shieldActive = false;
     while (game.status === 'active' && now >= game.nextBossAttackAtMs) {
-      game.nextBossAttackAtMs += BOSS_ATTACK_INTERVAL_MS;
+      game.nextBossAttackAtMs += game.settings.bossAttackIntervalSeconds * 1000;
       let effect;
-      if (game.shieldActive) {
+      if (game.shieldActive && now < game.shieldExpiresAtMs) {
         game.shieldActive = false;
+        game.shieldExpiresAtMs = 0;
         effect = 'shield-block';
       } else {
-        game.teamHp = Math.max(0, game.teamHp - BOSS_ATTACK_DAMAGE);
+        game.shieldActive = false;
+        game.shieldExpiresAtMs = 0;
+        const damage = game.boss.hp / game.boss.maxHp > 0.5
+          ? game.settings.bossAttackDamageAbove50Percent
+          : game.settings.bossAttackDamageAtOrBelow50Percent;
+        game.teamHp = Math.max(0, game.teamHp - damage);
         effect = 'boss-hit';
       }
       this.broadcast({ type: 'game-state', game: this.snapshot(), effect });
@@ -242,11 +259,17 @@ class GameManager {
       }
     }
     if (now >= game.endsAtMs) {
-      this.finish('timer-expired');
+      this.finishAtTimer();
       return;
     }
     game.secondsRemaining = Math.max(0, Math.ceil((game.endsAtMs - now) / 1000));
     this.broadcast({ type: 'game-state', game: this.snapshot() });
+  }
+
+  finishAtTimer() {
+    const game = this.currentGame;
+    if (!game || game.status !== 'active') return;
+    this.finish(game.boss.hp / game.boss.maxHp < 0.25 ? 'last-stand' : 'timer-expired');
   }
 
   finish(reason) {
@@ -254,7 +277,7 @@ class GameManager {
     if (!game || game.status !== 'active') return;
     clearInterval(this.tickTimer);
     game.status = 'finished';
-    game.outcome = reason === 'boss-defeated' ? 'victory' : 'fallen';
+    game.outcome = reason === 'boss-defeated' || reason === 'last-stand' ? 'victory' : 'fallen';
     game.reason = reason;
     game.finishedAt = new Date().toISOString();
     game.secondsRemaining = 0;
@@ -267,13 +290,15 @@ class GameManager {
       raidersJoined: players.filter((player) => player.team === TEAM_RAIDERS).length,
       bossHpRemaining: game.boss.hp,
       teamHpRemaining: game.teamHp,
-      durationSeconds: Math.min(game.durationSeconds, Math.round((Date.now() - game.startedAtMs) / 1000)),
+      durationSeconds: Math.min(game.durationSeconds, Math.round((this.gameNow() - game.startedAtMs) / 1000)),
     };
     const snapshot = this.snapshot();
     this.broadcast({ type: 'game-finish', game: snapshot });
     this.runCallback(this.onGameFinished, { game: snapshot, raid: game.sourceRaid, result: snapshot.result });
     if (game.settings.botMessages) {
-      const verdict = game.outcome === 'victory' ? 'RAID VICTORY' : 'RAID FALLEN';
+      const verdict = game.outcome === 'victory'
+        ? (reason === 'last-stand' ? 'RAID VICTORY (LAST STAND)' : 'RAID VICTORY')
+        : 'RAID FALLEN';
       const raiderMvp = snapshot.result.mvpRaider?.username || '—';
       const homeMvp = snapshot.result.mvpHome?.username || '—';
       this.queueBotMessage(`${verdict}! Raider MVP: ${raiderMvp}. Home MVP: ${homeMvp}. ${snapshot.result.raidersJoined} raiders joined!`);
@@ -283,7 +308,7 @@ class GameManager {
   snapshot() {
     const game = this.currentGame;
     if (!game) return null;
-    const now = Date.now();
+    const now = this.gameNow();
     const durationRemaining = game.status === 'active' ? Math.max(0, Math.ceil((game.endsAtMs - now) / 1000)) : 0;
     return {
       raidId: game.raidId,
@@ -302,7 +327,8 @@ class GameManager {
       comboMeter: game.comboMeter,
       comboMax: game.comboMax,
       doubleDamageSeconds: Math.max(0, Math.ceil((game.doubleDamageUntilMs - now) / 1000)),
-      shieldActive: game.shieldActive,
+      shieldActive: game.shieldActive && now < game.shieldExpiresAtMs,
+      shieldSeconds: game.shieldActive ? Math.max(0, Math.ceil((game.shieldExpiresAtMs - now) / 1000)) : 0,
       rallyCharges: { ...game.rallyCharges },
       raidersJoined: [...game.players.values()].filter((player) => player.team === TEAM_RAIDERS).length,
       homeJoined: [...game.players.values()].filter((player) => player.team === TEAM_HOME).length,
@@ -334,6 +360,10 @@ class GameManager {
   shutdown() {
     clearInterval(this.tickTimer);
   }
+
+  gameNow() {
+    return this.clockGameOriginMs + (Date.now() - this.clockWallOriginMs) * this.timeScale;
+  }
 }
 
 function topPlayer(players, team) {
@@ -352,8 +382,8 @@ function otherTeam(team) {
   return team === TEAM_RAIDERS ? TEAM_HOME : TEAM_RAIDERS;
 }
 
-function randomInteger(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function randomInteger(min, max, random = Math.random) {
+  return Math.floor(random() * (max - min + 1)) + min;
 }
 
 function clamp(value, min, max) {

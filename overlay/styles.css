@@ -128,3 +128,93 @@ h1 { margin: 14px 0 8px; font-size: clamp(40px, 4.2vw, 64px); font-weight: 900; 
   .mvp-grid { grid-template-columns: 1fr 1fr; }
   .joined-card { grid-column: 1 / -1; }
 }
+
+/* Default OBS layout keeps the game's centre open. Use ?layout=full for the dashboard preview. */
+body:not(.full-layout) { padding: 0; overflow: hidden; }
+body:not(.full-layout) .game-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  transform: none;
+  animation: none;
+  pointer-events: none;
+}
+body:not(.full-layout) .topline { position: fixed; inset: 0; display: block; padding: 0; pointer-events: none; }
+body:not(.full-layout) .brand { display: none; }
+body:not(.full-layout) .timer-wrap { position: fixed; z-index: 5; right: 32px; bottom: 42px; min-width: 112px; justify-content: space-between; }
+body:not(.full-layout) .battle-hud { position: fixed; inset: 0; pointer-events: none; }
+body:not(.full-layout) .main-grid { display: contents; }
+body:not(.full-layout) .boss-panel {
+  position: fixed;
+  z-index: 2;
+  left: 24px;
+  bottom: 132px;
+  width: min(560px, calc(100vw - 48px));
+  min-height: 0;
+  height: 250px;
+  padding: 16px 18px;
+}
+body:not(.full-layout) .boss-copy { width: min(66%, 350px); }
+body:not(.full-layout) .boss-panel h1 { margin: 8px 0 5px; font-size: clamp(25px, 2vw, 34px); letter-spacing: -.04em; }
+body:not(.full-layout) .boss-intro { max-height: 29px; min-height: 0; margin-bottom: 8px; overflow: hidden; font-size: 10px; line-height: 1.35; }
+body:not(.full-layout) .boss-hp-label { margin-bottom: 5px; font-size: 8px; }
+body:not(.full-layout) .bar { height: 7px; }
+body:not(.full-layout) .category { gap: 6px; margin-top: 8px; font-size: 8px; }
+body:not(.full-layout) .category strong { font-size: 9px; }
+body:not(.full-layout) .boss-art { width: 155px; min-width: 125px; height: 145px; margin-left: 0; }
+body:not(.full-layout) .feed-panel {
+  position: fixed;
+  z-index: 3;
+  top: 24px;
+  right: 24px;
+  width: min(300px, calc(100vw - 48px));
+  min-height: 0;
+  padding: 13px;
+}
+body:not(.full-layout) .feed-panel .panel-heading { font-size: 9px; }
+body:not(.full-layout) .damage-feed { min-height: 0; gap: 5px; margin: 10px 0 0; }
+body:not(.full-layout) .damage-feed li { grid-template-columns: 53px minmax(52px, .8fr) minmax(72px, 1.2fr); gap: 5px; min-height: 27px; padding: 3px 5px; font-size: 9px; }
+body:not(.full-layout) .team-badge { padding: 4px 3px; font-size: 7px; }
+body:not(.full-layout) .command-hint { display: none; }
+body:not(.full-layout) .team-panel {
+  position: fixed;
+  z-index: 4;
+  right: 24px;
+  bottom: 20px;
+  left: 24px;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 160px 12px 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+body:not(.full-layout) .team-panel .panel-heading { font-size: 9px; }
+body:not(.full-layout) .team-caption { gap: 6px; margin-top: 7px; }
+body:not(.full-layout) .team-chip { padding: 3px 5px; font-size: 7px; }
+body:not(.full-layout) .team-chip b { font-size: 9px; }
+body:not(.full-layout) .combo-status { margin-top: 6px; font-size: 9px; }
+body:not(.full-layout) .finish-screen {
+  position: fixed;
+  z-index: 20;
+  top: 50%;
+  left: 50%;
+  width: min(620px, calc(100vw - 36px));
+  margin: 0;
+  transform: translate(-50%, -50%);
+  animation: finish-center-in .5s cubic-bezier(.18,.82,.2,1) both;
+}
+body:not(.full-layout) .finish-screen.fade { animation: none; opacity: 0; transform: translate(-50%, -47%) scale(.98); transition: opacity .85s ease, transform .85s ease; }
+body.full-layout .finish-screen.fade { animation: none; opacity: 0; transform: translateY(12px) scale(.98); transition: opacity .85s ease, transform .85s ease; }
+@keyframes finish-center-in { from { opacity: 0; transform: translate(-50%, -47%) scale(.97); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@media (max-width: 760px) {
+  body:not(.full-layout) .boss-panel { left: 14px; bottom: 146px; width: min(560px, calc(100vw - 28px)); height: 220px; }
+  body:not(.full-layout) .boss-art { width: 125px; min-width: 105px; height: 125px; }
+  body:not(.full-layout) .team-panel { right: 14px; bottom: 14px; left: 14px; gap: 10px; padding-right: 125px; }
+  body:not(.full-layout) .timer-wrap { right: 21px; bottom: 37px; min-width: 98px; padding: 6px 8px; }
+  body:not(.full-layout) .timer-label { font-size: 8px; }
+  body:not(.full-layout) .countdown { min-width: 34px; font-size: 16px; }
+  body:not(.full-layout) .feed-panel { top: 14px; right: 14px; }
+}

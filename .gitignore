@@ -1,5 +1,7 @@
 .env
 node_modules/
+server/data/*.json
+server/data/*.json.tmp
 server/data/tokens.json
 server/data/tokens.json.tmp
 server/data/settings.json
@@ -8,4 +10,5 @@ server/data/raids.json
 server/data/raids.json.tmp
 server/data/smoke*/
 npm-debug.log*
+Session ID.txt
 Session ID.txt

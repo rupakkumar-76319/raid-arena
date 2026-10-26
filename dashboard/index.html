@@ -41,7 +41,7 @@
           <button class="button" type="submit">Start test raid</button>
         </form>
         <p id="test-result" class="muted" aria-live="polite">Open the overlay preview or add it as an OBS Browser Source.</p>
-        <div class="simulate-row"><div><strong>Solo simulation</strong><small>40 random chat actions from fake raiders and home chatter over 30 seconds.</small></div><button id="simulate-button" class="button secondary" type="button">Simulate battle</button></div>
+        <div class="simulate-row"><div><strong>Solo simulation</strong><small>70 weighted chat actions across 60 seconds, tuned as a 1.15x solo challenge.</small></div><button id="simulate-button" class="button secondary" type="button">Simulate battle</button></div>
         <p id="simulate-result" class="muted" aria-live="polite"></p>
       </section>
     </div>
@@ -60,7 +60,7 @@
       </div>
     </section>
 
-    <section class="link-row"><a href="/overlay" target="_blank" rel="noreferrer">Open transparent overlay preview ↗</a><span id="game-status" class="muted">Waiting for a raid</span></section>
+    <section class="link-row"><a href="/overlay?layout=full" target="_blank" rel="noreferrer">Open full overlay preview ↗</a><span id="game-status" class="muted">Waiting for a raid</span></section>
     <footer>Raid Arena · Settings and encounter history are saved locally in server/data/.</footer>
   </main>
   <script src="/dashboard/app.js" defer></script>

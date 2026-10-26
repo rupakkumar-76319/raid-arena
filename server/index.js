@@ -8,6 +8,7 @@ const { TokenStore } = require('./token-store');
 const { SettingsStore } = require('./settings-store');
 const { RetentionTracker } = require('./retention');
 const { GameManager, TEAM_HOME, TEAM_RAIDERS } = require('./game');
+const { simulateBattle: runSimulatedBattle } = require('./simulation');
 const { TwitchClient } = require('./twitch');
 
 const app = express();
@@ -153,7 +154,7 @@ app.post('/test/simulate', (req, res) => {
   simulationRunning = true;
   simulateBattle().catch((error) => console.error(`Battle simulation failed: ${error.message}`))
     .finally(() => { simulationRunning = false; });
-  res.status(202).json({ ok: true, message: 'Simulation started: 40 fake chat actions over 30 seconds.' });
+  res.status(202).json({ ok: true, message: 'Simulation started: 70 fake chat actions over 60 seconds.' });
 });
 
 overlaySockets.on('connection', (socket) => {
@@ -166,7 +167,10 @@ async function handleIncomingRaid(raid) {
   if (!raid.isTest && raid.raiderId && settingsStore.get().autoShoutout) {
     sendAutoShoutout(raid.raiderId, raid.raiderName);
   }
-  return game.startRaid(raid, { durationSeconds: raid.durationSeconds });
+  return game.startRaid(raid, {
+    durationSeconds: raid.durationSeconds,
+    bossDifficultyMultiplier: raid.bossDifficultyMultiplier,
+  });
 }
 
 async function sendAutoShoutout(raiderId, raiderName) {
@@ -192,49 +196,11 @@ async function sendAutoShoutout(raiderId, raiderName) {
 }
 
 async function simulateBattle() {
-  await twitch.handleTestRaid('ArenaSimulator', 250, { durationSeconds: 32 });
-  const commands = [
-    ['!attack', 0.45], ['!shield', 0.17], ['!heal', 0.20], ['!rally', 0.18],
-  ];
-  const raiderNames = Array.from({ length: 40 }, (_, index) => `RaidCrew${String(index + 1).padStart(2, '0')}`);
-  const homeNames = Array.from({ length: 40 }, (_, index) => `HomeCrew${String(index + 1).padStart(2, '0')}`);
-  let raiderIndex = 0;
-  let homeIndex = 0;
-  let alternatingAttackCount = 0;
-
-  for (let index = 0; index < 40; index += 1) {
-    if (index > 0) await delay(750);
-    const message = chooseCommand(commands);
-    let team = Math.random() < 0.5 ? TEAM_RAIDERS : TEAM_HOME;
-    // Give the simulation a clear co-op combo moment while keeping the command roll random.
-    if (message === '!attack' && alternatingAttackCount < 7) {
-      team = alternatingAttackCount % 2 === 0 ? TEAM_RAIDERS : TEAM_HOME;
-      alternatingAttackCount += 1;
-    }
-    const names = team === TEAM_RAIDERS ? raiderNames : homeNames;
-    const username = team === TEAM_RAIDERS ? names[raiderIndex++] : names[homeIndex++];
-    await game.handleChat({
-      userId: `simulation:${team.toLowerCase()}:${index}`,
-      username,
-      message,
-      teamOverride: team,
-    });
-  }
-  console.log('Battle simulation injected 40 fake chat commands.');
-}
-
-function chooseCommand(weightedCommands) {
-  const roll = Math.random();
-  let cumulative = 0;
-  for (const [command, weight] of weightedCommands) {
-    cumulative += weight;
-    if (roll < cumulative) return command;
-  }
-  return '!attack';
-}
-
-function delay(milliseconds) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  await runSimulatedBattle({
+    startRaid: (raiderName, viewers, options) => twitch.handleTestRaid(raiderName, viewers, options),
+    handleChat: (chat) => game.handleChat(chat),
+  });
+  console.log('Battle simulation injected 70 alternating fake chat actions.');
 }
 
 function broadcastToOverlays(message) {

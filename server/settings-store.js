@@ -4,6 +4,9 @@ const path = require('node:path');
 const DEFAULT_SETTINGS = Object.freeze({
   gameDurationSeconds: 90,
   bossDifficultyMultiplier: 1,
+  bossAttackIntervalSeconds: 10,
+  bossAttackDamageAbove50Percent: 10,
+  bossAttackDamageAtOrBelow50Percent: 6,
   autoShoutout: true,
   botMessages: true,
 });
@@ -49,11 +52,21 @@ class SettingsStore {
 function validateSettings(values) {
   const duration = Number(values.gameDurationSeconds);
   const difficulty = Number(values.bossDifficultyMultiplier);
+  const attackInterval = Number(values.bossAttackIntervalSeconds);
+  const highHpDamage = Number(values.bossAttackDamageAbove50Percent);
+  const lowHpDamage = Number(values.bossAttackDamageAtOrBelow50Percent);
   if (!Number.isInteger(duration) || duration < 30 || duration > 180) {
     throw new Error('Game duration must be a whole number from 30 to 180 seconds.');
   }
   if (!Number.isFinite(difficulty) || difficulty < 0.5 || difficulty > 3) {
     throw new Error('Boss difficulty must be between 0.5 and 3.0.');
+  }
+  if (!Number.isInteger(attackInterval) || attackInterval < 1 || attackInterval > 120) {
+    throw new Error('Boss attack interval must be a whole number from 1 to 120 seconds.');
+  }
+  if (!Number.isInteger(highHpDamage) || highHpDamage < 1 || highHpDamage > 100 ||
+      !Number.isInteger(lowHpDamage) || lowHpDamage < 1 || lowHpDamage > 100) {
+    throw new Error('Boss attack damage values must be whole numbers from 1 to 100.');
   }
   if (typeof values.autoShoutout !== 'boolean' || typeof values.botMessages !== 'boolean') {
     throw new Error('Auto-shoutout and bot messages must be on or off.');
@@ -61,6 +74,9 @@ function validateSettings(values) {
   return {
     gameDurationSeconds: duration,
     bossDifficultyMultiplier: Math.round(difficulty * 10) / 10,
+    bossAttackIntervalSeconds: attackInterval,
+    bossAttackDamageAbove50Percent: highHpDamage,
+    bossAttackDamageAtOrBelow50Percent: lowHpDamage,
     autoShoutout: values.autoShoutout,
     botMessages: values.botMessages,
   };

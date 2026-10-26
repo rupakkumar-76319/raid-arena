@@ -7,7 +7,10 @@ const effectClasses = ['effect-hit', 'effect-shield', 'effect-shield-block', 'ef
 let retryTimer;
 let readyFadeTimer;
 let effectTimer;
+let finishTimer;
 let currentArtKey = '';
+
+document.body.classList.toggle('full-layout', new URLSearchParams(location.search).get('layout') === 'full');
 
 const shapeMarkup = {
   'block-golem': '<rect class="fill-two" x="77" y="192" width="48" height="39" rx="5"/><rect class="fill-two" x="155" y="192" width="48" height="39" rx="5"/><rect class="fill-one" x="56" y="91" width="168" height="114" rx="11"/><rect class="fill-two" x="78" y="22" width="124" height="88" rx="8"/><path class="dark" d="M103 53h22v22h-22zm52 0h22v22h-22zm-30 20h28v25h-28z"/><rect class="fill-two" x="29" y="114" width="38" height="79" rx="9"/><rect class="fill-two" x="213" y="114" width="38" height="79" rx="9"/><path class="soft-line" d="M92 146h96M114 164h52"/>',
@@ -44,9 +47,11 @@ function renderGame(game, effect) {
   gameOverlay.hidden = false;
   const active = game.status === 'active';
   battleHud.hidden = !active;
-  finishScreen.hidden = active;
 
   if (active) {
+    clearTimeout(finishTimer);
+    finishScreen.hidden = true;
+    finishScreen.classList.remove('fade');
     document.querySelector('#raider-name').textContent = game.raiderName || 'Incoming raider';
     document.querySelector('#raid-viewers').textContent = `${Number(game.viewerCount || 0).toLocaleString()} VIEWERS`;
     document.querySelector('#boss-name').textContent = game.boss.name;
@@ -69,11 +74,21 @@ function renderGame(game, effect) {
       : `Alternate team attacks to charge 2× damage${hasRallyCharge(game) ? ' · RALLY CHARGED' : ''}`;
     const shieldStatus = document.querySelector('#shield-status');
     shieldStatus.classList.toggle('active', game.shieldActive);
-    shieldStatus.textContent = game.shieldActive ? 'SHIELD READY' : 'NO SHIELD';
+    shieldStatus.textContent = game.shieldActive ? `SHIELD READY (${game.shieldSeconds}s)` : 'NO SHIELD';
     updateBossArt(game.boss.theme);
     renderFeed(game.feed || []);
   } else if (game.status === 'finished') {
+    finishScreen.hidden = false;
+    finishScreen.classList.remove('fade');
     renderFinish(game);
+    clearTimeout(finishTimer);
+    finishTimer = setTimeout(() => {
+      finishScreen.classList.add('fade');
+      finishTimer = setTimeout(() => {
+        finishScreen.hidden = true;
+        gameOverlay.hidden = true;
+      }, 850);
+    }, 7150);
   }
 
   if (effect) animateEffect(effect);
@@ -121,12 +136,16 @@ function renderFeed(actions) {
 function renderFinish(game) {
   const result = game.result || {};
   const victory = result.outcome === 'victory';
+  const lastStand = result.reason === 'last-stand';
   finishScreen.classList.toggle('victory', victory);
   finishScreen.classList.toggle('fallen', !victory);
-  document.querySelector('#finish-eyebrow').textContent = victory ? 'THE TEAM BROUGHT IT DOWN' : 'THE ARENA HAS FALLEN';
+  document.querySelector('#finish-eyebrow').textContent = lastStand
+    ? 'LAST STAND · THE TEAM HELD ON'
+    : victory ? 'THE TEAM BROUGHT IT DOWN' : 'THE ARENA HAS FALLEN';
   document.querySelector('#finish-title').textContent = victory ? 'RAID VICTORY' : 'RAID FALLEN';
-  document.querySelector('#finish-boss').textContent = victory
-    ? `${game.boss.name} was defeated.`
+  document.querySelector('#finish-boss').textContent = lastStand
+    ? `${game.boss.name} was still standing, but the team held out for the victory.`
+    : victory ? `${game.boss.name} was defeated.`
     : `${game.boss.name} survived the encounter.`;
   document.querySelector('#mvp-raider').textContent = result.mvpRaider?.username || '—';
   document.querySelector('#mvp-home').textContent = result.mvpHome?.username || '—';

@@ -20,6 +20,19 @@ class RetentionTracker {
       if (error.code !== 'ENOENT') throw error;
       this.records = [];
     }
+    // A running game cannot be resumed after a process restart. Make that visible
+    // in history instead of leaving the dashboard's result column pending forever.
+    const recoveredAt = new Date().toISOString();
+    let recovered = false;
+    for (const record of this.records) {
+      if (!record.result || record.result === 'in-progress') {
+        record.result = 'interrupted';
+        record.reason = 'server-restart';
+        record.finishedAt ||= recoveredAt;
+        recovered = true;
+      }
+    }
+    if (recovered) await this.persist();
     return this;
   }
 
@@ -105,6 +118,7 @@ class RetentionTracker {
     if (!record) return;
     record.finishedAt = game.finishedAt;
     record.result = result.outcome;
+    record.reason = result.reason || game.reason || null;
     record.mvpRaider = result.mvpRaider?.username || null;
     record.mvpHome = result.mvpHome?.username || null;
     record.raidersJoined = result.raidersJoined;

@@ -311,7 +311,7 @@ class TwitchClient {
     });
   }
 
-  async handleRaid({ raiderId, raiderName, viewers, isTest = false, durationSeconds }) {
+  async handleRaid({ raiderId, raiderName, viewers, isTest = false, durationSeconds, bossDifficultyMultiplier }) {
     let category = 'Unknown category';
     if (raiderId) {
       try {
@@ -330,6 +330,7 @@ class TwitchClient {
       startedAt: new Date().toISOString(),
       isTest,
       durationSeconds,
+      bossDifficultyMultiplier,
     });
   }
 
@@ -351,6 +352,7 @@ class TwitchClient {
       viewers,
       isTest: true,
       durationSeconds: options.durationSeconds,
+      bossDifficultyMultiplier: options.bossDifficultyMultiplier,
     });
   }
 

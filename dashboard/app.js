@@ -19,7 +19,7 @@ async function refreshStatus() {
       ? '1 overlay connected'
       : `${status.overlayClients} overlays connected`;
     simulateButton.disabled = status.simulationRunning || status.game?.status === 'active';
-    if (status.simulationRunning) simulationResult.textContent = 'Simulation running: fake chat actions are arriving for 30 seconds.';
+    if (status.simulationRunning) simulationResult.textContent = 'Simulation running: 70 fake chat actions are arriving for 60 seconds.';
     else if (status.game?.status === 'active') gameStatus.textContent = `Battle live · ${status.game.secondsRemaining}s remaining`;
     else if (status.game?.status === 'finished') gameStatus.textContent = `Last battle: ${status.game.outcome === 'victory' ? 'victory' : 'fallen'}`;
     else gameStatus.textContent = 'Waiting for a raid';
@@ -73,7 +73,7 @@ function renderHistory(raids) {
     result.className = `result-cell ${raid.result || 'pending'}`;
     addCell(row, raid.mvpRaider || '—');
     addCell(row, raid.mvpHome || '—');
-    addCell(row, `${sampleValue(raid, 'oneMinute')} / ${sampleValue(raid, 'fiveMinutes')} / ${sampleValue(raid, 'tenMinutes')}`);
+    addCell(row, `${sampleValue(raid, 'oneMinute', 1)} / ${sampleValue(raid, 'fiveMinutes', 5)} / ${sampleValue(raid, 'tenMinutes', 10)}`);
     body.append(row);
   }
 }
@@ -85,9 +85,17 @@ function addCell(row, text) {
   return cell;
 }
 
-function sampleValue(raid, key) {
+function sampleValue(raid, key, minute) {
   const value = raid.retention?.[key]?.distinctChatters;
-  return value === null || value === undefined ? '—' : String(value);
+  if (value !== null && value !== undefined) return String(value);
+  if (raid.result === 'interrupted') return 'interrupted';
+  const sampleAt = Date.parse(raid.startedAt) + minute * 60_000;
+  const remaining = sampleAt - Date.now();
+  if (Number.isFinite(sampleAt) && remaining > 0) {
+    const seconds = Math.ceil(remaining / 1000);
+    return `pending (${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')})`;
+  }
+  return '—';
 }
 
 function formatDate(value) {
