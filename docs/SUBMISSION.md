@@ -8,7 +8,7 @@ Deadline: **Nov 2, 2026, 2:00 PM PT** (Nov 3, 2:30 AM IST). Submit by Nov 2 even
 
 **Tagline:** Turn every Twitch raid into a 90-second co-op boss fight, so raiders stay.
 
-**Repository:** https://github.com/<your-user>/raid-arena (public)
+**Repository:** https://github.com/rupakkumar-76319/raid-arena (public)
 
 **Codex session ID:** see `Session ID.txt` (01a1796e-5b7e-7301-99ad-9a26a9d1db5a)
 
@@ -55,8 +55,8 @@ Per-raider "welcome" mini-rounds for small raids, a season leaderboard across ra
 Rules: no copyrighted music (YouTube Audio Library only), no other streamers' footage without permission, show the project running on Twitch AND Codex building it.
 
 ## Pre-submit checklist
-- [ ] Push repo to GitHub (public), confirm `.env`, `server/data/*.json`, `Session ID.txt` are NOT in it
-- [ ] README setup works from a clean clone (`npm install`, `.env`, `npm start`)
+- [x] Push repo to GitHub (public), confirmed `.env`, `server/data/*.json`, `Session ID.txt` are NOT in it
+- [x] README setup works from a clean clone (`npm install`, `.env`, `npm start`)
 - [ ] Video uploaded, under 3:00, visible to anyone with the link
 - [ ] Session ID pasted into the form
 - [ ] Click **Submit** (a saved draft is not a submission), check "My projects" shows Submitted
