@@ -2,6 +2,10 @@
 
 Raid Arena turns incoming Twitch raids into a cooperative boss battle for an OBS browser-source overlay. Raiders and the channel's existing chat work together for a configurable game round. Boss art uses inline SVG and CSS; it loads no external image assets.
 
+## Built with OpenAI Codex
+
+The whole project was written in a single Codex thread. Codex scaffolded the Twitch OAuth and EventSub plumbing, game engine, overlay, dashboard, retention tracking, and simulation, then iterated through four test-and-fix rounds covering boss balance, the stream-safe compact overlay, a realistic simulation reaching 9/10 boss kills in headless runs, and category-themed bosses.
+
 ## Requirements
 
 - Windows 10 or newer

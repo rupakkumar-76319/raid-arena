@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Built with Codex: written in one thread, with four test-and-fix rounds across balance, compact overlay, simulation, and category themes.
 - Balanced boss attacks to hit every 10 seconds for 12 team HP above half boss health and 8 at or below half; increased healing to 20 HP and made shields last until the next hit or 12 seconds.
 - Added last-stand victories when the timer expires with less than 25% boss health, plus advanced boss attack settings.
 - Reworked the solo simulation to use a 35-viewer raid, 70 weighted alternating actions over 60 seconds, 14 raider and 10 home identities, and a calibrated 2.4x test-only boss. Added a seeded ten-run headless check with a 10x game clock.
