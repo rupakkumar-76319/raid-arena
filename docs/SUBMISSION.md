@@ -60,3 +60,40 @@ Rules: no copyrighted music (YouTube Audio Library only), no other streamers' fo
 - [ ] Video uploaded, under 3:00, visible to anyone with the link
 - [ ] Session ID pasted into the form
 - [ ] Click **Submit** (a saved draft is not a submission), check "My projects" shows Submitted
+
+## Video narration script (word for word, ~2:45 at a calm pace)
+
+Record screen with OBS or Windows Game Bar (Win+G). Speak over it, or paste these lines as on-screen captions if you prefer not to speak. Keep each scene roughly to the times below.
+
+**Scene 1 — 0:00 to 0:15. Your Twitch channel page or a raid notification.**
+"Raids are how small streamers grow. A bigger streamer sends their whole audience over. But most raiders leave within a couple of minutes, and Twitch gives you no tool to welcome them, and no way to see if they stayed."
+
+**Scene 2 — 0:15 to 0:30. Dashboard at http://localhost:3000, show Connected status and the category dropdown.**
+"This is Raid Arena. It connects to your Twitch channel, and turns every raid into a ninety-second co-op boss fight on your stream."
+
+**Scene 3 — 0:30 to 1:30. OBS or the overlay at http://localhost:3000/overlay, with Twitch chat visible. Start a Demo battle with Minecraft selected, or receive the real raid.**
+"A raid comes in. Raid Arena looks up the raiding streamer's category on Twitch, and spawns a matching boss. Minecraft raid, Block Golem."
+"Everyone fights with chat commands. Attack, shield, heal, rally. Raiders are one team, your regulars are the other."
+"The combo meter only charges when the two teams alternate. Nobody can win alone. When it fills, double damage."
+"The boss hits back, so shields and heals matter."
+"Boss down. Raid victory, and the MVPs from each team are called out on screen and in chat. The raider also gets an automatic shoutout."
+
+**Scene 4 — 1:30 to 1:50. Dashboard raid history and retention columns.**
+"After the fight, Raid Arena keeps watching. It records how many raiders are still chatting at one, five and ten minutes. For the first time, a streamer can see whether a raid actually stuck."
+
+**Scene 5 — 1:50 to 2:35. Codex terminal. Scroll from the first prompt down to the sim-check output.**
+"The whole project was built in one Codex thread. Codex wrote the Twitch OAuth and EventSub code, the game engine, the overlay and the dashboard."
+"Then we iterated on real test results. The first version was unwinnable, so Codex rebalanced the boss and wrote a headless simulator that runs ten battles at ten times speed. Now nine out of ten end in a real kill."
+"It redesigned the overlay to keep the centre of the screen clear for gameplay, and added themed bosses per category."
+
+**Scene 6 — 2:35 to 2:50. Victory screen, then the README on GitHub.**
+"Raid Arena. Open source, runs on any channel, and gives every raid a reason to stay."
+
+Captions you can type on screen: "Most raiders leave within minutes" (scene 1), "Built in one Codex thread" (scene 5), "9 of 10 simulated battles end in a boss kill" (scene 5).
+
+### Recording checklist
+- Browser zoom 100%, 1920×1080, close other tabs.
+- Dashboard: run one Demo battle before recording so the history table is not empty.
+- Codex terminal: scroll to the top of the thread first so the first prompt is on screen.
+- No music, or YouTube Audio Library only.
+- Trim to under 3:00, upload to YouTube as Unlisted, copy the link into the Devpost form.
