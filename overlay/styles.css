@@ -145,7 +145,7 @@ body:not(.full-layout) .game-overlay {
   animation: none;
   pointer-events: none;
 }
-body:not(.full-layout) .topline { position: fixed; inset: 0; display: block; padding: 0; pointer-events: none; }
+body:not(.full-layout) .topline { position: fixed; z-index: 6; inset: 0; display: block; padding: 0; pointer-events: none; }
 body:not(.full-layout) .brand { display: none; }
 body:not(.full-layout) .timer-wrap { position: fixed; z-index: 5; right: 24px; bottom: 20px; display: grid; width: min(220px, calc(100vw - 48px)); min-width: 0; grid-template-columns: 1fr auto; grid-template-areas: "label count" "shield shield"; gap: 4px 12px; padding: 10px 13px; }
 body:not(.full-layout) .timer-label { grid-area: label; align-self: center; font-size: 10px; }

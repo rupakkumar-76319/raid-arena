@@ -6,6 +6,17 @@ Raid Arena turns incoming Twitch raids into a cooperative boss battle for an OBS
 
 The whole project was written in a single Codex thread. Codex scaffolded the Twitch OAuth and EventSub plumbing, game engine, overlay, dashboard, retention tracking, and simulation, then iterated through four test-and-fix rounds covering boss balance, the stream-safe compact overlay, a realistic simulation reaching 9/10 boss kills in headless runs, and category-themed bosses.
 
+## Screenshots
+
+![Compact overlay during a Minecraft Block Golem battle](docs/screenshots/overlay-battle.jpg)
+*Compact Minecraft Block Golem overlay during battle.*
+
+![Raid victory finish card with MVPs](docs/screenshots/overlay-victory.jpg)
+*RAID VICTORY finish card showing both team MVPs.*
+
+![Raid Arena streamer dashboard](docs/screenshots/dashboard.jpg)
+*Streamer dashboard with settings, simulation controls, and raid history.*
+
 ## Requirements
 
 - Windows 10 or newer
@@ -169,3 +180,5 @@ server/retention.js
         -> server/data/raids.json
         -> dashboard/ (history + retention summary)
 ```
+
+Licensed under the [MIT License](LICENSE).
