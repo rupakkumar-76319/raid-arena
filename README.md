@@ -9,7 +9,7 @@ The whole project was written in a single Codex thread. Codex scaffolded the Twi
 ## Screenshots
 
 ![Compact overlay during a Minecraft Block Golem battle](docs/screenshots/overlay-battle.jpg)
-*Compact Minecraft Block Golem overlay during battle.*
+*Compact overlay mid-battle: Pokemon-themed Legendary Beast, live damage feed, shared team HP, combo meter and countdown.*
 
 ![Raid victory finish card with MVPs](docs/screenshots/overlay-victory.jpg)
 *RAID VICTORY finish card showing both team MVPs.*
