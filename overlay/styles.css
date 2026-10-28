@@ -7,6 +7,7 @@
 }
 * { box-sizing: border-box; }
 html, body { width: 100%; min-height: 100%; margin: 0; overflow: hidden; background: transparent; }
+html.dark-background, html.dark-background body { background: #101218; }
 body { padding: 42px; }
 [hidden] { display: none !important; }
 .ready-badge { position: fixed; left: 22px; bottom: 22px; padding: 7px 11px; border: 1px solid #ffffff28; border-radius: 99px; background: #0c1019b8; color: #c6cad7; font: 11px "Segoe UI", sans-serif; letter-spacing: .05em; opacity: 1; transition: opacity 1s; }

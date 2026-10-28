@@ -10,7 +10,9 @@ let effectTimer;
 let finishTimer;
 let currentArtKey = '';
 
-document.body.classList.toggle('full-layout', new URLSearchParams(location.search).get('layout') === 'full');
+const query = new URLSearchParams(location.search);
+document.body.classList.toggle('full-layout', query.get('layout') === 'full');
+document.documentElement.classList.toggle('dark-background', query.get('bg') === 'dark');
 
 const shapeMarkup = {
   'block-golem': '<rect class="fill-two" x="78" y="186" width="48" height="48"/><rect class="fill-two" x="154" y="186" width="48" height="48"/><path class="fill-one" d="M48 91h184v104H48z"/><path class="fill-two" d="M68 22h144v79H68z"/><path class="dark" d="M91 47h35v30H91zm63 0h35v30h-35zm-29 35h30v18h-30z"/><path class="fill-two" d="M19 104h42v79H19zm200 0h42v79h-42z"/><path class="soft-line" d="M88 139h104m-84 22h64"/>',

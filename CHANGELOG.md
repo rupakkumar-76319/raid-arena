@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added the optional `?bg=dark` overlay background for browser demos and recordings; it works with either compact or full layout.
 - Fixed compact overlay timer stacking above the team strip while keeping the finish card above both; added screenshots and the MIT license.
 - Built with Codex: written in one thread, with four test-and-fix rounds across balance, compact overlay, simulation, and category themes.
 - Balanced boss attacks to hit every 10 seconds for 12 team HP above half boss health and 8 at or below half; increased healing to 20 HP and made shields last until the next hit or 12 seconds.

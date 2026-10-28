@@ -72,6 +72,8 @@ Open [http://localhost:3000](http://localhost:3000), click **Connect Twitch**, a
 
 In OBS, add a **Browser Source** with URL `http://localhost:3000/overlay` and set its size to your canvas (1920 x 1080 is a good fit). The default stream-safe layout puts the boss card bottom-left, the team bars and countdown in a bottom strip, and the damage feed top-right, leaving the centre open. The dashboard preview uses the original large layout. To open it directly, use `http://localhost:3000/overlay?layout=full`.
 
+For direct browser demos or recordings, add `?bg=dark` for a solid `#101218` background; it can be combined with `layout=full` as `?layout=full&bg=dark`. The default background remains transparent for OBS.
+
 The idle overlay shows a small `Raid Arena ready` badge, which fades after five seconds. A raid brings in the boss HUD and game effects. The finish screen can use the centre for eight seconds, then fades away.
 
 ## Demo in 60 seconds
